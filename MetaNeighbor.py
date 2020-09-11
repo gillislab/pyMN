@@ -76,7 +76,7 @@ def score_default(X, S, C, node_degree_normalization, means=True):
     test_cell_labels = []
     for study in studies:
         nl = cell_labels.values.copy()
-        nl[S.values == study, :] = 0
+        nl[S == study, :] = 0
         test_cell_labels.append(nl.T)
     test_cell_labels = np.concatenate(test_cell_labels).T
 
@@ -91,7 +91,7 @@ def score_default(X, S, C, node_degree_normalization, means=True):
     filter_mat = []
     for study in studies:
         nl = cell_labels.values.copy()
-        nl[S.values != study, :] = np.nan
+        nl[S != study, :] = np.nan
         filter_mat.append(nl)
     filter_mat = np.concatenate(filter_mat).T
 
