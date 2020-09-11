@@ -32,9 +32,9 @@ def MetaNeighbor(adata,
         0] > 1, 'No matching genes between genesets and sample matrix'
 
     genesets = genesets.loc[shared_genes]
-    genesets = genesets.loc[:,genesets.sum()>0]
-    
-    assert genesets.shape[1] >0,'All Genesets are empty'
+    genesets = genesets.loc[:, genesets.sum() > 0]
+
+    assert genesets.shape[1] > 0, 'All Genesets are empty'
 
     adata_genes = adata.var_names
     results = {}
@@ -50,7 +50,8 @@ def MetaNeighbor(adata,
             results[gset] = score_default(adata_gs,
                                           adata.obs[study_col].values,
                                           adata.obs[ct_col].values,
-                                          node_degree_normalization, means=True)
+                                          node_degree_normalization,
+                                          means=True)
 
         del adata_gs
         gc.collect()
@@ -58,7 +59,36 @@ def MetaNeighbor(adata,
 
 
 def score_low_mem(X, S, C, node_degree_normalization):
-    pass
+    slice_cells = np.sum(X, axis=1) > 0
+    X = X[slice_cells, :]
+    S = S[slice_cells]
+    C = C[slice_cells]
+    cell_labels = design_matrix(C)
+
+    X_norm = np.asfortranarray(normalize_cells(X).T)
+    studies = np.unique(S)
+
+    res = {}
+    for study in studies:
+        votes = compute_votes(X_norm[:, S == study], X[:, S != study],
+                              cell_labels[S != study],
+                              node_degree_normalization)
+        votes = pd.DataFrame(votes, index=S, columns=cell_labels.columns)
+
+        res[study] = compute_aurocs(votes, positives=cell_labels[S == study])
+    return pd.DataFrame(res).mean(axis=1)
+
+
+def compute_votes(candidates, voters, voter_id, node_degree_normalization):
+
+    votes = candidates @ (voters @ voter_id.values)
+    if node_degree_normalization:
+        node_degree = bottleneck.nansum(voters, axis=1)
+        votes += node_degree[:, None]
+        norm = (
+            candidates @ bottleneck.nansum(voters, axis=1)) + voters.shape[1]
+        votes /= norm
+    return votes
 
 
 def score_default(X, S, C, node_degree_normalization, means=True):
@@ -82,7 +112,7 @@ def score_default(X, S, C, node_degree_normalization, means=True):
         sum_all = np.sum(nw, axis=0)
         sum_in /= sum_all[:, None]
 
-    sum_in[np.where(test_cell_labels==1)] = np.nan
+    sum_in[np.where(test_cell_labels == 1)] = np.nan
 
     filter_mat = []
     for study in studies:

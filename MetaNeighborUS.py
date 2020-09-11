@@ -6,7 +6,6 @@ import gc
 
 import logging
 
-
 from utilities import *
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
@@ -41,29 +40,27 @@ def MetaNeighborUS(adata,
         float), 'Cell Type Col is a floating point, must be string or int'
 
     assert np.unique(adata.obs[study_col].values)
-    
+
     if var_genes is not 'highly_variable':
-        var_genes = adata.var_names[np.in1d(adata.var_names,var_genes)]
+        var_genes = adata.var_names[np.in1d(adata.var_names, var_genes)]
     else:
         var_genes = adata.var_names[adata.var[var_genes]]
-    assert var_genes.shape[0]>2, 'Must have at least 2 genes'
-    adata = adata[:,var_genes]
+    assert var_genes.shape[0] > 2, 'Must have at least 2 genes'
+    adata = adata[:, var_genes]
 
-
-
-    if fast_version: 
-         #Fast verion doesn't work with Categorical datatype
+    if fast_version:
+        #Fast verion doesn't work with Categorical datatype
         assert adata.obs[
             study_col].dtype.name != 'category', 'Study Col is a category type, cast to either string or int'
         assert adata.obs[
             ct_col].dtype.name != 'category', 'Cell Type Col is a category type, cast to either string or int'
 
-
         cell_nv = metaNeighborUS_fast(adata.X, adata.obs[study_col],
-                                    adata.obs[ct_col],
-                                    node_degree_normalization)
+                                      adata.obs[ct_col],
+                                      node_degree_normalization)
     else:
-        cell_nv = metaNeighborUS_default(adata, study_col, ct_col, node_degree_normalization)
+        cell_nv = metaNeighborUS_default(adata, study_col, ct_col,
+                                         node_degree_normalization)
     if symmetric_output:
         logging.info("Making output Symmetric")
         cell_nv = (cell_nv + cell_nv.T) / 2
@@ -72,9 +69,10 @@ def MetaNeighborUS(adata,
     return cell_nv
 
 
-def metaNeighborUS_default(adata, study_col, ct_col, node_degree_normalization):
+def metaNeighborUS_default(adata, study_col, ct_col,
+                           node_degree_normalization):
     pheno, cell_labels, study_ct_uniq = create_cell_labels(
-            adata, study_col, ct_col)
+        adata, study_col, ct_col)
 
     rank_data = create_nw_spearman(adata.X.T)
 
@@ -85,8 +83,7 @@ def metaNeighborUS_default(adata, study_col, ct_col, node_degree_normalization):
         sum_all = np.sum(rank_data, axis=0)
         sum_in /= sum_all[:, None]
 
-    cell_nv = compute_aurocs_default(sum_in, study_ct_uniq, study_col,
-                                     ct_col)
+    cell_nv = compute_aurocs_default(sum_in, study_ct_uniq, study_col, ct_col)
     return cell_nv
 
 
