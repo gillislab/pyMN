@@ -40,6 +40,7 @@ def MetaNeighborUS(adata,
         adata.obs[ct_col].values[0],
         float), 'Cell Type Col is a floating point, must be string or int'
 
+    assert np.unique(adata.obs[study_col].values)
     
     if var_genes is not 'highly_variable':
         var_genes = adata.var_names[np.in1d(adata.var_names,var_genes)]
@@ -88,7 +89,7 @@ def metaNeighborUS_default(adata, study_col, ct_col, node_degree_normalization):
                                      ct_col)
     return cell_nv
 
-    
+
 def compute_aurocs_default(sum_in, study_ct_uniq, pheno, study_col, ct_col):
     cell_nv = pd.DataFrame(index=study_ct_uniq)
     logging.info(f'Computing AUROCs')
