@@ -30,7 +30,7 @@ def rank(data, nan_val):
 def create_nw_spearman(data):
     if sparse.issparse(data):
         data = data.toarray()
-    data = bottleneck.rankdata(data, axixs=0)
+    data = bottleneck.rankdata(data, axis=0)
     nw = np.corrcoef(data, rowvar=False)
     rank(nw, nan_val=0)
     np.fill_diagonal(nw, 1)
