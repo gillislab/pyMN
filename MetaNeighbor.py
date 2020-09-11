@@ -9,7 +9,7 @@ import logging
 
 from utilities import *
 
-def MetaNeighbor(adata,study_col, ct_col, genesets. fast_version = False, node_degree_normalization = True):
+def MetaNeighbor(adata,study_col, ct_col, genesets, fast_version = False, node_degree_normalization = True):
 	
 	assert study_col in adata.obs_keys(), 'Study Col not in adata'
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
