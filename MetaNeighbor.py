@@ -31,11 +31,15 @@ def MetaNeighbor(adata,
     assert shared_genes.shape[
         0] > 1, 'No matching genes between genesets and sample matrix'
 
+    genesets = genesets.loc[shared_genes]
+    genesets = genesets.loc[:,genesets.sum()>0]
+    
+    assert genesets.shape[1] >0,'All Genesets are empty'
+
     adata_genes = adata.var_names
     results = {}
     for gset in genesets.columns:
-        genes = genesets.index[np.intersect1d(adata_genes,
-                                              genesets.index.astype(bool))]
+        genes = genesets.index[genesets[gset].astype(bool)]
         adata_gs = adata[:, genes].X
         if fast_version:
             results[gset] = score_low_mem(adata_gs,
