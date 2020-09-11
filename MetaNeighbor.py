@@ -50,7 +50,7 @@ def MetaNeighbor(adata,
             results[gset] = score_default(adata_gs,
                                           adata.obs[study_col].values,
                                           adata.obs[ct_col].values,
-                                          node_degree_normalization)
+                                          node_degree_normalization, means=True)
 
         del adata_gs
         gc.collect()
@@ -69,10 +69,6 @@ def score_default(X, S, C, node_degree_normalization, means=True):
 
     studies = np.unique(S)
 
-    test_cell_labels = np.concatenate([cell_labels.values.T] *
-                                      studies.shape[0]).T
-    exp_cols = np.repeat(studies, x1)
-
     test_cell_labels = []
     for study in studies:
         nl = cell_labels.values.copy()
@@ -86,7 +82,7 @@ def score_default(X, S, C, node_degree_normalization, means=True):
         sum_all = np.sum(nw, axis=0)
         sum_in /= sum_all[:, None]
 
-    sum_in = bottleneck.rankdata(np.abs(sum_in), axis=0)
+    sum_in[np.where(test_cell_labels==1)] = np.nan
 
     filter_mat = []
     for study in studies:
@@ -95,13 +91,15 @@ def score_default(X, S, C, node_degree_normalization, means=True):
         filter_mat.append(nl.T)
     filter_mat = np.concatenate(filter_mat).T
 
+    sum_in[np.isnan(filter_mat)] = np.nan
+
+    sum_in = bottleneck.nanrankdata(np.abs(sum_in), axis=0)
     sum_in[filter_mat == 0] = 0
-    positives = filter_mat == 1
 
     n_p = bottleneck.nansum(filter_mat, axis=0)
-    n_n = filter_mat.shape[0] - n_p
+    nn = filter_mat.shape[0] - n_p
     p = bottleneck.nansum(sum_in, axis=0)
-    rocNV = (p / n_p - (n_p + 1) / 2) / n_n
+    rocNV = (p / n_p - (n_p + 1) / 2) / nn
 
     #C array opposite of F in R
     rocNV = rocNV.reshape([studies.shape[0], x1]).T
