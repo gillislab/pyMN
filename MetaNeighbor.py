@@ -104,7 +104,7 @@ def score_default(X, S, C, node_degree_normalization, means=True):
     rocNV = (p / n_p - (n_p + 1) / 2) / n_n
 
     #C array opposite of F in R
-    rocNV = rocNV.reshape([study_col.shape[0], x1]).T
+    rocNV = rocNV.reshape([studies.shape[0], x1]).T
     if means:
         return pd.Series(bottleneck.nanmean(rocNV, axis=1),
                          index=cell_labels.columns)
