@@ -92,7 +92,7 @@ def score_default(X, S, C, node_degree_normalization, means=True):
     for study in studies:
         nl = cell_labels.values.copy()
         nl[S != study, :] = np.nan
-        filter_mat.append(nl)
+        filter_mat.append(nl.T)
     filter_mat = np.concatenate(filter_mat).T
 
     sum_in[filter_mat == 0] = 0
