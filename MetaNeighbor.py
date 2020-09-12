@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import bottleneck
 
+from scipy import sparse
 import gc
 
 import logging
@@ -27,7 +28,8 @@ def MetaNeighbor(adata,
         adata.obs[study_col]
     ).shape[0] > 1, f'Found only 1 unique study_id in {study_col}'
 
-    shared_genes = adata.var_names[np.in1d(adata.var_names, genesets.index)]
+    shared_genes = np.intersect1d(adata.var_names.values,
+                                  genesets.index.values)
     assert shared_genes.shape[
         0] > 1, 'No matching genes between genesets and sample matrix'
 
@@ -59,7 +61,7 @@ def MetaNeighbor(adata,
 
 
 def score_low_mem(X, S, C, node_degree_normalization):
-    slice_cells = np.sum(X, axis=1) > 0
+    slice_cells = np.ravel(np.sum(X, axis=1) > 0)
     X = X[slice_cells, :]
     S = S[slice_cells]
     C = C[slice_cells]
@@ -70,24 +72,26 @@ def score_low_mem(X, S, C, node_degree_normalization):
 
     res = {}
     for study in studies:
-        votes = compute_votes(X_norm[:, S == study], X[:, S != study],
-                              cell_labels[S != study],
+        votes = compute_votes(X_norm[:, S == study], X_norm[:, S != study],
+                              cell_labels[S != study].values,
                               node_degree_normalization)
-        votes = pd.DataFrame(votes, index=S, columns=cell_labels.columns)
-
-        res[study] = compute_aurocs(votes, positives=cell_labels[S == study])
-    return pd.DataFrame(res).mean(axis=1)
+        votes = pd.DataFrame(votes, index=C[S==study], columns=cell_labels.columns)
+        roc = compute_aurocs(votes)
+        res[study] = roc
+    res = pd.concat(res.values(), axis=1)
+    res = pd.Series(bottleneck.nanmean(res.values, axis=1),index=cell_labels.columns)
+    return res
 
 
 def compute_votes(candidates, voters, voter_id, node_degree_normalization):
 
-    votes = candidates @ (voters @ voter_id.values)
+    votes = np.dot(candidates.T, (voters @ voter_id))
     if node_degree_normalization:
-        node_degree = bottleneck.nansum(voters, axis=1)
-        votes += node_degree[:, None]
+        node_degree = bottleneck.nansum(voter_id, axis=0)
+        votes += node_degree
         norm = (
-            candidates @ bottleneck.nansum(voters, axis=1)) + voters.shape[1]
-        votes /= norm
+            candidates.T @ bottleneck.nansum(voters, axis=1)) + voters.shape[1]
+        votes = (votes.T / norm).T
     return votes
 
 
