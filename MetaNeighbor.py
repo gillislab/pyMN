@@ -100,18 +100,23 @@ def compute_votes(candidates, voters, voter_id, node_degree_normalization):
 
 def score_default(X, S, C, node_degree_normalization, means=True):
     nw = create_nw_spearman(X.T)
+    nw = (nw + nw.T) / 2
+
     cell_labels = design_matrix(C)
+
     x1 = cell_labels.shape[1]
     x2 = cell_labels.shape[0]
 
     studies = np.unique(S)
+    exp_cols = np.repeat(studies, x1)
 
-    test_cell_labels = []
-    for study in studies:
-        nl = cell_labels.values.copy()
-        nl[S == study, :] = 0
-        test_cell_labels.append(nl.T)
-    test_cell_labels = np.concatenate(test_cell_labels).T
+    test_cell_labels = np.tile(cell_labels.values, studies.shape[0])
+    for study in studies:  #Hide testing labels
+        d = np.where(study == S)[0]
+        a = np.where(study == exp_cols)[0]
+        for i in a:
+            test_cell_labels[d, i] = 0
+
 
     predicts = nw @ test_cell_labels
 
@@ -119,25 +124,23 @@ def score_default(X, S, C, node_degree_normalization, means=True):
         sum_all = np.sum(nw, axis=0)
         predicts /= sum_all[:, None]
 
-    predicts[np.where(test_cell_labels == 1)] = np.nan
+    predicts[test_cell_labels == 1] = np.nan
 
     exp_cols = np.repeat(studies, x1)
-    filter_mat = []
+
+    filter_mat = np.tile(cell_labels.values, studies.shape[0])
     for study in studies:
-        d = np.where(S != study)[0]
-        a = np.where(exp_cols == study)[0]
-        for i in a:
-            predicts[d, i] = np.nan
-        nl = cell_labels.values.copy()
-        nl[S != study, :] = np.nan
-        filter_mat.append(nl.T)
-    filter_mat = np.concatenate(filter_mat).T
+        mask = (study != S).astype(float)[:, None] @ (
+            study == exp_cols).astype(float)[:, None].T
+        mask = mask.astype(bool)
+        filter_mat[mask] = np.nan
+        predicts[mask] = np.nan
 
     predicts = bottleneck.nanrankdata(np.abs(predicts), axis=0)
     predicts[filter_mat == 0] = 0
 
     n_p = bottleneck.nansum(filter_mat, axis=0)
-    nn = filter_mat.shape[0] - n_p
+    n_n = bottleneck.nansum((filter_mat == 0).astype(float), axis=0)
     p = bottleneck.nansum(predicts, axis=0)
     rocNV = (p / n_p - (n_p + 1) / 2) / nn
 
