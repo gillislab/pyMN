@@ -39,7 +39,7 @@ def MetaNeighborUS(adata,
         adata.obs[ct_col].values[0],
         float), 'Cell Type Col is a floating point, must be string or int'
 
-    assert np.unique(adata.obs[study_col].values)
+    assert np.unique(adata.obs[study_col].values).shape[0] > 1,'Need more than 1 study'
 
     if var_genes is not 'highly_variable':
         var_genes = adata.var_names[np.in1d(adata.var_names, var_genes)]
@@ -83,7 +83,7 @@ def metaNeighborUS_default(adata, study_col, ct_col,
         sum_all = np.sum(rank_data, axis=0)
         sum_in /= sum_all[:, None]
 
-    cell_nv = compute_aurocs_default(sum_in, study_ct_uniq, study_col, ct_col)
+    cell_nv = compute_aurocs_default(sum_in, study_ct_uniq, pheno, study_col, ct_col)
     return cell_nv
 
 
