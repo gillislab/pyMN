@@ -79,10 +79,9 @@ def score_low_mem(X, S, C, node_degree_normalization):
                              index=C[S == study],
                              columns=cell_labels.columns)
         roc = compute_aurocs(votes)
-        res[study] = roc
-    res = pd.concat(res.values(), axis=1)
-    res = pd.Series(bottleneck.nanmean(res.values, axis=1),
-                    index=cell_labels.columns)
+        res[study] = np.diag(roc.values)
+    res = pd.DataFrame(res).mean(axis=1)
+    res.index = cell_labels.columns
     return res
 
 
