@@ -22,7 +22,7 @@ def rank(data, nan_val):
     top = np.max(ranks)
     ranks /= top
     data[...] = nan_val
-    np.putmask(data, finite, ranks)
+    data[np.where(finite)] = ranks
     del ranks, finite
     gc.collect()
 
@@ -31,7 +31,9 @@ def create_nw_spearman(data):
     if sparse.issparse(data):
         data = data.toarray()
     data = bottleneck.rankdata(data, axis=0)
+    
     nw = np.corrcoef(data, rowvar=False)
+    np.fill_diagonal(nw, 1)
     rank(nw, nan_val=0)
     np.fill_diagonal(nw, 1)
     return nw
