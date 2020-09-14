@@ -75,11 +75,14 @@ def score_low_mem(X, S, C, node_degree_normalization):
         votes = compute_votes(X_norm[:, S == study], X_norm[:, S != study],
                               cell_labels[S != study].values,
                               node_degree_normalization)
-        votes = pd.DataFrame(votes, index=C[S==study], columns=cell_labels.columns)
+        votes = pd.DataFrame(votes,
+                             index=C[S == study],
+                             columns=cell_labels.columns)
         roc = compute_aurocs(votes)
         res[study] = roc
     res = pd.concat(res.values(), axis=1)
-    res = pd.Series(bottleneck.nanmean(res.values, axis=1),index=cell_labels.columns)
+    res = pd.Series(bottleneck.nanmean(res.values, axis=1),
+                    index=cell_labels.columns)
     return res
 
 
@@ -110,29 +113,32 @@ def score_default(X, S, C, node_degree_normalization, means=True):
         test_cell_labels.append(nl.T)
     test_cell_labels = np.concatenate(test_cell_labels).T
 
-    sum_in = nw @ test_cell_labels
+    predicts = nw @ test_cell_labels
 
     if node_degree_normalization:
         sum_all = np.sum(nw, axis=0)
-        sum_in /= sum_all[:, None]
+        predicts /= sum_all[:, None]
 
-    sum_in[np.where(test_cell_labels == 1)] = np.nan
+    predicts[np.where(test_cell_labels == 1)] = np.nan
 
+    exp_cols = np.repeat(studies, x1)
     filter_mat = []
     for study in studies:
+        d = np.where(S != study)[0]
+        a = np.where(exp_cols == study)[0]
+        for i in a:
+            predicts[d, i] = np.nan
         nl = cell_labels.values.copy()
         nl[S != study, :] = np.nan
         filter_mat.append(nl.T)
     filter_mat = np.concatenate(filter_mat).T
 
-    sum_in[np.isnan(filter_mat)] = np.nan
-
-    sum_in = bottleneck.nanrankdata(np.abs(sum_in), axis=0)
-    sum_in[filter_mat == 0] = 0
+    predicts = bottleneck.nanrankdata(np.abs(predicts), axis=0)
+    predicts[filter_mat == 0] = 0
 
     n_p = bottleneck.nansum(filter_mat, axis=0)
     nn = filter_mat.shape[0] - n_p
-    p = bottleneck.nansum(sum_in, axis=0)
+    p = bottleneck.nansum(predicts, axis=0)
     rocNV = (p / n_p - (n_p + 1) / 2) / nn
 
     #C array opposite of F in R
