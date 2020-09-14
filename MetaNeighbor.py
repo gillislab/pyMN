@@ -142,7 +142,7 @@ def score_default(X, S, C, node_degree_normalization, means=True):
     n_p = bottleneck.nansum(filter_mat, axis=0)
     n_n = bottleneck.nansum((filter_mat == 0).astype(float), axis=0)
     p = bottleneck.nansum(predicts, axis=0)
-    rocNV = (p / n_p - (n_p + 1) / 2) / nn
+    rocNV = (p / n_p - (n_p + 1) / 2) / n_n
 
     #C array opposite of F in R
     rocNV = rocNV.reshape([studies.shape[0], x1]).T
