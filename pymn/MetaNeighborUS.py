@@ -6,7 +6,7 @@ import gc
 
 import logging
 
-from .utilities import * 
+from utilities import *
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
@@ -54,7 +54,7 @@ def MetaNeighborUS(adata,
 
             cell_nv = metaNeighborUS_fast(adata.X, adata.obs[study_col],
                                           adata.obs[ct_col],
-                                          node_degree_normalization, one_vs_best)
+                                          node_degree_normalization)
         else:
             cell_nv = metaNeighborUS_default(adata, study_col, ct_col,
                                              node_degree_normalization)
@@ -119,7 +119,7 @@ def compute_aurocs_default(sum_in, study_ct_uniq, pheno, study_col, ct_col):
     return cell_nv
 
 
-def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best):
+def metaNeighborUS_fast(X, S, C, node_degree_normalization):
     """
     X : cells x genes array or csr_matrix
     S : Study Label Pandas Series
@@ -150,13 +150,13 @@ def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best):
 
     result = predict_and_score(X_norm, LSC, cluster_centroids,
                                n_cells_per_cluster, labels_order,
-                               node_degree_normalization, one_vs_best)
+                               node_degree_normalization)
     result = result[result.index]
     return result
 
 
 def predict_and_score(X_test, LSC, cluster_centroids, n_cells_per_cluster,
-                      labels_order, node_degree_normalization, one_vs_best):
+                      labels_order, node_degree_normalization):
 
     if node_degree_normalization:
         centroid_study_label = LSC.drop_duplicates(
@@ -187,8 +187,6 @@ def predict_and_score(X_test, LSC, cluster_centroids, n_cells_per_cluster,
                 votes[:, is_train] = votes[:, is_train] / norm
         votes = pd.DataFrame(votes, index=votes_idx, columns=votes_cols)
         aurocs = compute_aurocs(votes, positives=design_matrix(votes.index))
-        if one_vs_best:
-            aurocs =compute_1v1_aurocs(votes, aurocs)
         result.append(aurocs)
     return pd.concat(result)
 
