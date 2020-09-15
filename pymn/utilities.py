@@ -85,3 +85,38 @@ def compute_aurocs(votes, positives=None):
     result -= (n_pos[:, None] + 1) / 2
     result /= n_neg[:, None]
     return pd.DataFrame(result, index=res_idx, columns=res_col)
+
+def compute_1v1_aurocs(votes, aurocs):
+    res = pd.DataFrame(index=aurocs.index,columns=aurocs.column)
+    for col in aurocs.columns:
+        if np.all(np.isna(aurocs[col].values)):
+            continue
+        best, second, score = find_top_candidates(votes[col],aurocs[col])
+        res.loc[best, col] = scores
+        res.loc[second, col] = 1 - scores
+    return res
+
+
+def find_top_candidates(votes, aurocs):
+    candidates = aurocs.sort_values(ascending=False).head(5).index 
+    best = candidates[0]
+    votes_contender = votes[votes.index==best]
+    scores = 1
+    second_best = candidates[1]
+    for contender in candidates[1:]:
+        votes_contender = votes[votes.index==contender]
+        
+        pos = design_matrix(np.repeat([1,0], [votes_best.shape[0], votes_contender.shape[0]]))
+        vt = pd.DataFrame(pd.concat([votes_best, votes_contender]))
+        auroc = compute_aurocs(vt, positives=pos).values
+        
+        if auroc < .5:
+            second_best = best
+            best = contender
+            score = 1 - auroc
+            votes_best = votes_contender
+        elif auroc < score:
+            score = auroc
+            second_best = contender
+
+    return best, second_best, score
