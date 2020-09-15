@@ -1,0 +1,6 @@
+anndata>=0.7
+matplotlib>=3.1.2
+pandas>=0.21
+scipy>=1.4
+seaborn
+bottleneck
