@@ -7,7 +7,7 @@ import gc
 
 import logging
 
-from utils import *
+from .utils import *
 
 
 def MetaNeighbor(adata,

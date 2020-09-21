@@ -6,7 +6,7 @@ import gc
 
 import logging
 
-from utils import *
+from .utils import *
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
