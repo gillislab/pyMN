@@ -1,7 +1,6 @@
 from .utils import *
 
-
-def train_model(adata, study_col, ct_col, var_genes='highly_variable'):
+def trainModel(adata, study_col, ct_col, var_genes='highly_variable'):
     assert study_col in adata.obs_keys(), 'Study Col not in adata'
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
 
