@@ -1,6 +1,7 @@
 import numpy as np
 import bottleneck
 from scipy import sparse
+import pandas as pd
 def compute_var_genes(adata, return_vect=True):
 
     if sparse.issparse(adata.X):
