@@ -1,4 +1,4 @@
-from utilities import *
+from utils import *
 
 
 def train_model(adata, study_col, ct_col, var_genes='highly_variable'):
