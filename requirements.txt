@@ -5,3 +5,4 @@ scipy>=1.4
 seaborn
 scanpy
 bottleneck
+networkx

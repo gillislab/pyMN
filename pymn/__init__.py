@@ -7,3 +7,4 @@ from .plotting import plotMetaNeighborUS, plotMetaNeighbor
 from .topHits import topHits
 from .splitClusters import *
 from .utils import join_labels
+from .metaClusters import extractMetaClusters, score_meta_clusters
