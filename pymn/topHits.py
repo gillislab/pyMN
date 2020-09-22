@@ -21,7 +21,7 @@ def topHits(adata,
         ct_col = adata.uns[f'mn_key_params']['ct_col']
 
     assert np.all(
-        cell_nv.index == cell_nv.column
+        cell_nv.index == cell_nv.columns
     ), 'cell_nv is does not have the same order in both the rows and columns'
 
     pheno, _, study_ct_uniq = create_cell_labels(adata, study_col, ct_col)
