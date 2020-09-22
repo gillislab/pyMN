@@ -98,7 +98,7 @@ def compute_aurocs(votes, positives=None):
 def compute_1v1_aurocs(votes, aurocs):
     res = pd.DataFrame(index=aurocs.index,columns=aurocs.columns)
     for col in aurocs.columns:
-        if np.all(np.isna(aurocs[col].values)):
+        if np.all(np.isnan(aurocs[col].values)):
             continue
         best, second, score = find_top_candidates(votes[col],aurocs[col])
         res.loc[best, col] = scores
