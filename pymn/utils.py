@@ -109,7 +109,7 @@ def compute_1v1_aurocs(votes, aurocs):
 def find_top_candidates(votes, aurocs):
     candidates = aurocs.sort_values(ascending=False).head(5).index 
     best = candidates[0]
-    votes_contender = votes[votes.index==best]
+    votes_best = votes[votes.index==best]
     scores = 1
     second_best = candidates[1]
     for contender in candidates[1:]:
