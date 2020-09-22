@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from .utils import create_cell_labels
+from .utils import create_cell_labels, design_matrix
 
 
 def topHits(adata,
