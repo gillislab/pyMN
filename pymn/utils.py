@@ -96,7 +96,7 @@ def compute_aurocs(votes, positives=None):
     return pd.DataFrame(result, index=res_idx, columns=res_col)
 
 def compute_1v1_aurocs(votes, aurocs):
-    res = pd.DataFrame(index=aurocs.index,columns=aurocs.column)
+    res = pd.DataFrame(index=aurocs.index,columns=aurocs.columns)
     for col in aurocs.columns:
         if np.all(np.isna(aurocs[col].values)):
             continue
