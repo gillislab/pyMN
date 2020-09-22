@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from .utils import create_cell_labels
+
 
 def topHits(adata,
             study_col=None,
