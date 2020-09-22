@@ -50,19 +50,16 @@ def score_meta_clusters(meta_clusters,
     mc_summary = {}
     for module in modules.index:
         mc_summary[module] = {
-            'meta_cluster':
-            module,
             'clusters':
             modules[module],
             'n_studies':
             pheno.loc[modules[module], study_col].unique().shape[0],
             'score':
-            np.mean(best_hits.loc[modules[module], modules[module]].values)
+            np.nanmean(best_hits.loc[modules[module], modules[module]].values)
         }
     mc_summary[outlier_label] = {
-        'meta_cluster': outlier_label,
         'clusters': ';'.join(meta_clusters[outlier_label]),
         'n_studies': 1,
         'score': np.nan
     }
-    return pd.DataFrame(mc_summary)
+    return pd.DataFrame(mc_summary).T
