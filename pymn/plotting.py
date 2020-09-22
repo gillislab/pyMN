@@ -3,7 +3,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from anndata import AnnData
 import numpy as np
-sns.set(style='white', font_scale=1.25)
 
 
 def compute_nw_linkage(nw, method='average', **kwargs):
@@ -27,7 +26,7 @@ def plotMetaNeighborUS(data,
     else:
         df = data
 
-    l = compute_nw_linkage(df, method='ward')
+    l = compute_nw_linkage(df)
     if threshold is not None:
         cm = sns.clustermap(df >= threshold,
                             row_linkage=l,
