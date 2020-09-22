@@ -35,7 +35,9 @@ def topHits(adata,
     # Set all AUROCS for self dataset and self to 0
     study_design = design_matrix(pheno2.loc[cell_nv.index, study_col].values)
     study_mask = study_design @ study_design.T
+    print(study_mask)
     cell_nv.mask(study_mask.astype(bool), other=0, inplace=True)
+    np.fill_diagonal(cell_nv.values, 0)
 
     top_cols = pd.concat(
         [cell_nv.max(axis=0), cell_nv.idxmax()], axis=1).reset_index()
@@ -47,9 +49,9 @@ def topHits(adata,
     top_cols['Mean_AUROC'] = cell_nv.lookup(cell_nv.index,
                                             top_cols['Study_ID|Celltype_2'])
 
-    top_cols['Reciprical'] = top_cols['Mean_AUROC'].duplicated()
+    top_cols['Reciprocal'] = top_cols['Mean_AUROC'].duplicated()
 
-    recip = top_cols[top_cols.Reciprical]
+    recip = top_cols[top_cols.Reciprocal]
     filt = top_cols.Mean_AUROC >= threshold
     res = pd.concat([recip, top_cols[filt]])
     res['Match_type'] = np.concatenate([
