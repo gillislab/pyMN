@@ -55,7 +55,7 @@ def score_meta_clusters(meta_clusters,
             'clusters':
             modules[module],
             'n_studies':
-            pheno.loc[modues[module], study_col].unique().shape[0],
+            pheno.loc[modules[module], study_col].unique().shape[0],
             'score':
             np.mean(best_hits.loc[modules[module], modules[module]].values)
         }
