@@ -4,3 +4,4 @@ from .MetaNeighborUS import MetaNeighborUS
 from .trainModel import trainModel
 from .variableGenes import variableGenes
 from .plotting import plotMetaNeighborUS, plotMetaNeighbor
+from .topHits import topHits
