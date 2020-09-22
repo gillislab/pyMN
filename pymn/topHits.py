@@ -14,16 +14,16 @@ def topHits(adata,
     if cell_nv is not None:
         assert study_col in adata.obs_keys(), 'Study Col not in adata'
         assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
-
+        cnv = cell_nv.copy()
     if cell_nv is None:
         assert mn_key in adata.uns_keys(
         ), 'MetaNeighborUS resutls not stored in adata or passed as cell_nv'
-        cell_nv = adata.uns[mn_key].copy()
+        cnv = adata.uns[mn_key].copy()
         study_col = adata.uns[f'mn_key_params']['study_col']
         ct_col = adata.uns[f'mn_key_params']['ct_col']
 
     assert np.all(
-        cell_nv.index == cell_nv.columns
+        cnv.index == cnv.columns
     ), 'cell_nv is does not have the same order in both the rows and columns'
 
     pheno, _, study_ct_uniq = create_cell_labels(adata, study_col, ct_col)
@@ -33,19 +33,20 @@ def topHits(adata,
     pheno2.set_index('study_ct', inplace=True)
 
     # Set all AUROCS for self dataset and self to 0
-    study_design = design_matrix(pheno2.loc[cell_nv.index, study_col].values)
+    study_design = design_matrix(pheno2.loc[cnv.index, study_col].values)
     study_mask = study_design @ study_design.T
-    cell_nv.mask(study_mask.astype(bool), other=0, inplace=True)
-    np.fill_diagonal(cell_nv.values, 0)
+    cnv.mask(study_mask.astype(bool), other=0, inplace=True)
+    diagonal = np.diag(cnv.values)
+    np.fill_diagonal(cnv.values, 0)
 
     top_cols = pd.concat(
-        [cell_nv.max(axis=0), cell_nv.idxmax()], axis=1).reset_index()
+        [cnv.max(axis=0), cnv.idxmax()], axis=1).reset_index()
 
     top_cols.columns = [
         'Study_ID|Celltype_1', 'Mean_AUROC', 'Study_ID|Celltype_2'
     ]
 
-    top_cols.loc[:,'Mean_AUROC'] = cell_nv.lookup(cell_nv.index,
+    top_cols.loc[:,'Mean_AUROC'] = cnv.lookup(cnv.index,
                                             top_cols['Study_ID|Celltype_2'])
 
     top_cols['Reciprocal'] = top_cols['Mean_AUROC'].duplicated()
@@ -67,4 +68,5 @@ def topHits(adata,
     res.reset_index(drop=True, inplace=True)
     res.Mean_AUROC = np.round(res.Mean_AUROC, 2)
     res = res[res.Mean_AUROC >= threshold]
+    np.fill_diagonal(cell_nv, diagonal)
     return res
