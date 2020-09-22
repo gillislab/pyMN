@@ -2,7 +2,7 @@ from scipy.cluster import hierarchy
 import seaborn as sns
 import matplotlib.pyplot as plt
 from anndata import AnnData
-
+import numpy as np
 sns.set(style='white', font_scale=1.25)
 
 
