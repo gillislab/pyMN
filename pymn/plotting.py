@@ -17,7 +17,7 @@ def plotMetaNeighborUS(data,
                        draw_rownames=False,
                        mn_key='MetaNeighborUS',
                        show=True,
-                       figsize=(10, 6),
+                       figsize=(6, 6),
                        **kwargs):
 
     if type(data) is AnnData:
@@ -34,8 +34,6 @@ def plotMetaNeighborUS(data,
                             col_linkage=l,
                             figsize=figsize,
                             square=True,
-                            xticklabels=False,
-                            yticklabels=False,
                             **kwargs)
     else:
         cm = sns.clustermap(df,
@@ -43,8 +41,6 @@ def plotMetaNeighborUS(data,
                             col_linkage=l,
                             figsize=figsize,
                             square=True,
-                            xticklabels=False,
-                            yticklabels=False,
                             **kwargs)
 
     if show:
