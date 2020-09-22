@@ -62,6 +62,7 @@ def MetaNeighborUS(adata,
                                               adata.obs[ct_col],
                                               node_degree_normalization)
 
+    cell_nv = cell_nv.astype(float)
     logging.info("Done Computing MetaNeighbor")
     if save_uns:
         adata.uns[mn_key] = cell_nv

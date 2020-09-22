@@ -6,7 +6,9 @@ import numpy as np
 
 
 def compute_nw_linkage(nw, method='average', **kwargs):
-    return hierarchy.linkage((1 - nw.values)[np.triu_indices(nw.shape[0], 1)],
+    nw2 = (nw + nw.T) / 2
+    nw2.fillna(0,inplace=True)
+    return hierarchy.linkage((1 - nw2.values)[np.triu_indices(nw2.shape[0], 1)],
                              method=method,
                              **kwargs)
 
