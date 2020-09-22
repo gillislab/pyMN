@@ -45,7 +45,7 @@ def topHits(adata,
         'Study_ID|Celltype_1', 'Mean_AUROC', 'Study_ID|Celltype_2'
     ]
 
-    top_cols['Mean_AUROC'] = cell_nv.lookup(cell_nv.index,
+    top_cols.loc[:,'Mean_AUROC'] = cell_nv.lookup(cell_nv.index,
                                             top_cols['Study_ID|Celltype_2'])
 
     top_cols['Reciprocal'] = top_cols['Mean_AUROC'].duplicated()
