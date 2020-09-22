@@ -11,14 +11,7 @@ from .utils import *
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
-def create_cell_labels(adata, study_col, ct_col):
-    pheno = adata.obs[[study_col, ct_col]]
 
-    pheno.loc[:, 'study_ct'] = join_labels(pheno[study_col].values,
-                                           pheno[ct_col].values)
-    study_ct_uniq = np.unique(pheno.study_ct)
-    cell_labels = pd.get_dummies(pheno.study_ct)
-    return pheno, cell_labels, study_ct_uniq
 
 
 def MetaNeighborUS(adata,
@@ -78,6 +71,7 @@ def MetaNeighborUS(adata,
         'study_col':study_col,
         'ct_col':ct_col,
         'one_vs_best':one_vs_best,
+        'symmetric_output':symmetric_output
         }
     else:
         return cell_nv

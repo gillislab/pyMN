@@ -4,6 +4,15 @@ import pandas as pd
 import bottleneck
 import gc
 
+def create_cell_labels(adata, study_col, ct_col):
+    pheno = adata.obs[[study_col, ct_col]]
+
+    pheno.loc[:, 'study_ct'] = join_labels(pheno[study_col].values,
+                                           pheno[ct_col].values)
+    study_ct_uniq = np.unique(pheno.study_ct)
+    cell_labels = pd.get_dummies(pheno.study_ct)
+    return pheno, cell_labels, study_ct_uniq
+
 
 def rank(data, nan_val):
     """Rank normalize data
