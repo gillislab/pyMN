@@ -36,7 +36,6 @@ def topHits(adata,
     study_design = design_matrix(pheno2.loc[cnv.index, study_col].values)
     study_mask = study_design @ study_design.T
     cnv.mask(study_mask.astype(bool), other=0, inplace=True)
-    diagonal = np.diag(cnv.values)
     np.fill_diagonal(cnv.values, 0)
 
     top_cols = pd.concat(
@@ -68,5 +67,4 @@ def topHits(adata,
     res.reset_index(drop=True, inplace=True)
     res.Mean_AUROC = np.round(res.Mean_AUROC, 2)
     res = res[res.Mean_AUROC >= threshold]
-    np.fill_diagonal(cell_nv, diagonal)
     return res
