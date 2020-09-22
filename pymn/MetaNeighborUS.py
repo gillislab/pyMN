@@ -49,10 +49,10 @@ def MetaNeighborUS(adata,
     if trained_model is None:
         if fast_version:
             #Fast verion doesn't work with Categorical datatype
-            assert adata.obs[
-                study_col].dtype.name != 'category', 'Study Col is a category type, cast to either string or int'
-            assert adata.obs[
-                ct_col].dtype.name != 'category', 'Cell Type Col is a category type, cast to either string or int'
+            # assert adata.obs[
+            #     study_col].dtype.name != 'category', 'Study Col is a category type, cast to either string or int'
+            # assert adata.obs[
+            #     ct_col].dtype.name != 'category', 'Cell Type Col is a category type, cast to either string or int'
 
             cell_nv = metaNeighborUS_fast(adata.X, adata.obs[study_col],
                                           adata.obs[ct_col],
