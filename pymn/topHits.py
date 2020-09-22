@@ -35,7 +35,6 @@ def topHits(adata,
     # Set all AUROCS for self dataset and self to 0
     study_design = design_matrix(pheno2.loc[cell_nv.index, study_col].values)
     study_mask = study_design @ study_design.T
-    print(study_mask)
     cell_nv.mask(study_mask.astype(bool), other=0, inplace=True)
     np.fill_diagonal(cell_nv.values, 0)
 
