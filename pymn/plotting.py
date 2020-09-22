@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from anndata import AnnData
 import numpy as np
 
-
+from .utils import *
 def compute_nw_linkage(nw, method='average', **kwargs):
     nw2 = (nw + nw.T) / 2
     nw2.fillna(0,inplace=True)
@@ -55,6 +55,9 @@ def plotMetaNeighbor(data,
                      mn_key='MetaNeighbor',
                      show=True,
                      figsize=(10, 6)):
+        print(np.sum(auroc))       
+		, _, _ = create_cell_labels(adata, study_col, ct_col)
+		    pheno = pheno.drop_duplicates().set_index('study_ct')
     if type(data) is AnnData:
         assert mn_key in data.uns_keys(
         ), 'Must Run MetaNeighbor before plotting or pass results dataframe for data'
@@ -83,13 +86,14 @@ def plotUpset(adata, study_col, ct_col, metaclusters):
 
     assert study_col in adata.obs_keys(), 'Study Col not in adata'
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
-
     pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
     pheno = pheno.drop_duplicates().set_index('study_ct')
 
     mc_studies = pd.DataFrame(0, index=metaclusters.index, columns=np.unique(pheno[study_col]))
     for mc in metaclusters.index:
         mc_studies.at[mc, pheno.loc[ metaclusters[mc], study_col]] = 1
-    mc_studies.groupby(mc_studies.columns).size()
+    return mc_studies
+    mc_studies.groupby(mc_studies.columns,axis=1).size()
+
 
     print(mc_studies)
