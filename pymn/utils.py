@@ -117,7 +117,7 @@ def find_top_candidates(votes, aurocs):
         
         pos = design_matrix(np.repeat([1,0], [votes_best.shape[0], votes_contender.shape[0]]))
         vt = pd.DataFrame(pd.concat([votes_best, votes_contender]))
-        auroc = compute_aurocs(vt, positives=pos).values[0,0]
+        auroc = compute_aurocs(vt, positives=pos).values[1,0]
         if auroc < .5:
             second_best = best
             best = contender
