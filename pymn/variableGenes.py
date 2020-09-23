@@ -28,7 +28,7 @@ def compute_var_genes(adata, return_vect=True):
         adata.var['highly_variable'] = selected_genes.astype(bool)
 
 
-def variableGenes(adata, study_col, return_vect=True):
+def variableGenes(adata, study_col, return_vect=False):
 
     assert study_col in adata.obs_keys(), "Study Col not in obs data"
 

@@ -9,6 +9,7 @@ def topHits(adata,
             ct_col=None,
             cell_nv=None,
             mn_key='MetaNeighborUS',
+            save_uns = True,
             threshold=.95):
 
     if cell_nv is not None:
@@ -67,4 +68,6 @@ def topHits(adata,
     res.reset_index(drop=True, inplace=True)
     res.Mean_AUROC = np.round(res.Mean_AUROC, 2)
     res = res[res.Mean_AUROC >= threshold]
+    if save_uns:
+        adata.uns[f'{mn_key}_topHits'] = 
     return res

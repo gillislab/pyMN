@@ -23,7 +23,7 @@ def MetaNeighborUS(adata,
                    fast_version=False,
                    one_vs_best=False,
                    trained_model=None,
-                   save_uns=False,
+                   save_uns=True,
                    mn_key='MetaNeighborUS'):
 
     assert study_col in adata.obs_keys(), 'Study Col not in adata'
@@ -65,7 +65,10 @@ def MetaNeighborUS(adata,
     cell_nv = cell_nv.astype(float)
     logging.info("Done Computing MetaNeighbor")
     if save_uns:
-        adata.uns[mn_key] = cell_nv
+        if one_vs_best:
+            adata.uns[f'{mn_key}_1v1'] = cell_nv
+        else:
+            adata.uns[mn_key] = cell_nv
         adata.uns[f'{mn_key}_params'] = {
         'fast':fast_version,
         'node_degree_normalization':node_degree_normalization,

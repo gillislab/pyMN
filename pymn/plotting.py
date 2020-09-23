@@ -2,8 +2,9 @@ from scipy.cluster import hierarchy
 import seaborn as sns
 import matplotlib.pyplot as plt
 from anndata import AnnData
-import numpy as np 
-from upsetplot import plot as UpSet
+import numpy as 
+from collect import defaultdict
+from upsetplot import UpSet
 from .utils import *
 
 
@@ -22,6 +23,7 @@ def plotMetaNeighborUS(data,
                        mn_key='MetaNeighborUS',
                        show=True,
                        figsize=(6, 6),
+                       fontsize=6,
                        **kwargs):
 
     if type(data) is AnnData:
@@ -46,6 +48,8 @@ def plotMetaNeighborUS(data,
                             figsize=figsize,
                             square=True,
                             **kwargs)
+    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xmajorticklabels(), fontsize = fontsize)
+    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_ymajorticklabels(), fontsize = fontsize)
 
     if show:
         plt.show()
@@ -95,19 +99,33 @@ def plotUpset(adata, study_col, ct_col, metaclusters, outlier_label = 'outliers'
     
     get_studies = lambda x: pheno.loc[x, study_col].values.tolist()
     studies = [get_studies(x) for x in metaclusters.values]
-    membership  = dict(zip(metaclusters.index, studies))
+    membership  = dict(zip(metaclusters.index, membership))
     df = pd.DataFrame([{name: True
                     for name in names} for names in membership.values()],
                   index=membership.keys())
     df = df.fillna(False)
-    df = df.loc[df.index != outlier_label]
+    df = df[df.index != outlier_label]
     df = df.groupby(df.columns.tolist(), as_index=False).size()
 
     us = UpSet(df,
       sort_categories_by=None,
       sort_by='cardinality')
-    us['intersections'].set(ylabel='# of Meta Clusters')
     if show:
         plt.show()
     else:
         return us
+
+
+def makeClusterGraph(adata, best_hits=None, low_threshold=0, hight_threshold=1):
+    filtered_hits = best_hits.copy()
+    filtered_hits.fillna(0,inplace=True)
+    filtered_hits.values[(best_hits.values > hight_threshold) | (best_hits.values < low_threshold)] = 0
+    np.fill_diagonal(filtered_hits.vlaues, 0)
+    G = nx.from_pandas_adjacency(filtered_hits)
+    return G
+
+def plotClusterGraph(G, study_col, ct_col):
+    vertex_colors=None
+    if vertex_colors is None:
+        vertex_colors = make_vertex_colors(G)
+    G

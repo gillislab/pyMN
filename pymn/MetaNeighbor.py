@@ -16,7 +16,7 @@ def MetaNeighbor(adata,
                  genesets,
                  fast_version=False,
                  node_degree_normalization=True,
-                 save_uns=False,
+                 save_uns=True,
                  mn_key='MetaNeighbor'):
     assert study_col in adata.obs_keys(), 'Study Col not in adata'
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
