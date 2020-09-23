@@ -25,7 +25,7 @@ def extractMetaClusters(best_hits, threshold=0):
 def make_graph(best_hits, threshold=0):
     adj = np.zeros_like(best_hits)
     adj[best_hits > threshold] = 1
-    adj = adj @ adj.T
+    adj *= adj.T
     adj = pd.DataFrame(adj, index=best_hits.index, columns=best_hits.columns)
     return nx.from_pandas_adjacency(adj)
 
