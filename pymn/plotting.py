@@ -3,7 +3,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from anndata import AnnData
 import numpy as np
-from upsetplot import UpSet
+from upsetplot import plot as UpSet
 from .utils import *
 
 
