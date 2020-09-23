@@ -2,7 +2,7 @@ from scipy.cluster import hierarchy
 import seaborn as sns
 import matplotlib.pyplot as plt
 from anndata import AnnData
-import numpy as 
+import numpy as np
 from collect import defaultdict
 from upsetplot import UpSet
 from .utils import *
