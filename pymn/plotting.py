@@ -89,10 +89,13 @@ def plotMetaNeighbor(data,
         return ax
 
 
-def plotUpset(adata, study_col, ct_col, metaclusters, outlier_label = 'outliers', show=True):
+def plotUpset(adata, study_col, ct_col, metaclusters='MetaNeighborUS_1v1_metaclusters', outlier_label = 'outliers', show=True):
 
     assert study_col in adata.obs_keys(), 'Study Col not in adata'
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
+    if type(metaclusters) is str:
+        assert metaclusters in adata.uns_keys(), 'Run extractMetaClusters or pass Metacluster Series'
+        metaclusters = adata.uns[metaclusters]
     pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
     pheno = pheno.drop_duplicates().set_index('study_ct')
     
