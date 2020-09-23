@@ -2,8 +2,9 @@ from scipy.cluster import hierarchy
 import seaborn as sns
 import matplotlib.pyplot as plt
 from anndata import AnnData
-import numpy as np
-
+import numpy as 
+from collect import defaultdict
+from upsetplot import UpSet
 from .utils import *
 
 
@@ -86,19 +87,27 @@ def plotMetaNeighbor(data,
         return ax
 
 
-def plotUpset(adata, study_col, ct_col, metaclusters):
+def plotUpset(adata, study_col, ct_col, metaclusters, outlier_label = 'outliers', show=True):
 
     assert study_col in adata.obs_keys(), 'Study Col not in adata'
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
     pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
     pheno = pheno.drop_duplicates().set_index('study_ct')
+    
+    get_studies = lambda x: pheno.loc[x, study_col].values.tolist()
+    studies = [get_studies(x) for x in metaclusters.values]
+    membership  = dict(zip(metaclusters.index, membership))
+    df = pd.DataFrame([{name: True
+                    for name in names} for names in membership.values()],
+                  index=membership.keys())
+    df = df.fillna(False)
+    df = df[df.index != outlier_label]
+    df = df.groupby(df.columns.tolist(), as_index=False).size()
 
-    mc_studies = pd.DataFrame(0,
-                              index=metaclusters.index,
-                              columns=np.unique(pheno[study_col]))
-    for mc in metaclusters.index:
-        mc_studies.at[mc, pheno.loc[metaclusters[mc], study_col]] = 1
-    return mc_studies
-    mc_studies.groupby(mc_studies.columns, axis=1).size()
-
-    print(mc_studies)
+    us = UpSet(df,
+      sort_categories_by=None,
+      sort_by='cardinality')
+    if show:
+        plt.show()
+    else:
+        return us
