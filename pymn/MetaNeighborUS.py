@@ -37,7 +37,6 @@ def MetaNeighborUS(adata,
     else:
         var_genes = adata.var_names[adata.var[var_genes]]
     assert var_genes.shape[0] > 2, 'Must have at least 2 genes'
-    adata = adata[:, var_genes]
 
     if trained_model is None:
         if fast_version:
@@ -47,17 +46,17 @@ def MetaNeighborUS(adata,
             assert adata.obs[
                 ct_col].dtype.name != 'category', 'Cell Type Col is a category type, cast to either string or int'
 
-            cell_nv = metaNeighborUS_fast(adata.X, adata.obs[study_col],
+            cell_nv = metaNeighborUS_fast(adata[:, var_genes].X, adata.obs[study_col],
                                           adata.obs[ct_col],
                                           node_degree_normalization, one_vs_best)
         else:
-            cell_nv = metaNeighborUS_default(adata, study_col, ct_col,
+            cell_nv = metaNeighborUS_default(adata[:, var_genes], study_col, ct_col,
                                              node_degree_normalization)
         if symmetric_output:
             logging.info("Making output Symmetric")
             cell_nv = (cell_nv + cell_nv.T) / 2
     else:
-        cell_nv = MetaNeighborUS_from_trained(trained_model, adata.X,
+        cell_nv = MetaNeighborUS_from_trained(trained_model, adata[:, var_genes].X,
                                               adata.obs[study_col],
                                               adata.obs[ct_col],
                                               node_degree_normalization)
