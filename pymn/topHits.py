@@ -69,5 +69,6 @@ def topHits(adata,
     res.Mean_AUROC = np.round(res.Mean_AUROC, 2)
     res = res[res.Mean_AUROC >= threshold]
     if save_uns:
-        adata.uns[f'{mn_key}_topHits'] = 
-    return res
+        adata.uns[f'{mn_key}_topHits'] = res
+    else:
+        return res
