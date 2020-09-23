@@ -20,8 +20,8 @@ def topHits(adata,
         assert mn_key in adata.uns_keys(
         ), 'MetaNeighborUS resutls not stored in adata or passed as cell_nv'
         cnv = adata.uns[mn_key].copy()
-        study_col = adata.uns[f'mn_key_params']['study_col']
-        ct_col = adata.uns[f'mn_key_params']['ct_col']
+        study_col = adata.uns[f'{mn_key}_params']['study_col']
+        ct_col = adata.uns[f'{mn_key}_params']['ct_col']
 
     assert np.all(
         cnv.index == cnv.columns
