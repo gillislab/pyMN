@@ -2,9 +2,8 @@ from scipy.cluster import hierarchy
 import seaborn as sns
 import matplotlib.pyplot as plt
 from anndata import AnnData
-import numpy as 
-from collect import defaultdict
-from upsetplot import UpSet
+import numpy as np 
+from upsetplot import plot as UpSet
 from .utils import *
 
 
@@ -96,17 +95,18 @@ def plotUpset(adata, study_col, ct_col, metaclusters, outlier_label = 'outliers'
     
     get_studies = lambda x: pheno.loc[x, study_col].values.tolist()
     studies = [get_studies(x) for x in metaclusters.values]
-    membership  = dict(zip(metaclusters.index, membership))
+    membership  = dict(zip(metaclusters.index, studies))
     df = pd.DataFrame([{name: True
                     for name in names} for names in membership.values()],
                   index=membership.keys())
     df = df.fillna(False)
-    df = df[df.index != outlier_label]
+    df = df.loc[df.index != outlier_label]
     df = df.groupby(df.columns.tolist(), as_index=False).size()
 
     us = UpSet(df,
       sort_categories_by=None,
       sort_by='cardinality')
+    us['intersections'].set(ylabel='# of Meta Clusters')
     if show:
         plt.show()
     else:
