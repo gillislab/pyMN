@@ -36,14 +36,14 @@ def extractMetaClusters(data, mn_key='MetaNeighborUS_1v1', threshold=0, outlier_
 def make_graph(best_hits, threshold=0):
     adj = np.zeros_like(best_hits)
     adj[best_hits > threshold] = 1
-    adj = adj @  adj.T
+    adj *=  adj.T
     adj = pd.DataFrame(adj, index=best_hits.index, columns=best_hits.columns)
     return nx.from_pandas_adjacency(adj)
 
 
 def score_meta_clusters(adata,
                         meta_clusters='MetaNeighborUS_1v1_metaclusters',
-                        best_hits='MetaNeighborUS_1v1_best_hits',
+                        best_hits='MetaNeighborUS_1v1',
                         mn_key = 'MetaNeighborUS',
                         study_col=None,
                         ct_col=None,
