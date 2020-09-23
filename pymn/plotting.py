@@ -101,7 +101,7 @@ def plotUpset(adata, study_col, ct_col, metaclusters='MetaNeighborUS_1v1_metaclu
     
     get_studies = lambda x: pheno.loc[x, study_col].values.tolist()
     studies = [get_studies(x) for x in metaclusters.values]
-    membership  = dict(zip(metaclusters.index, membership))
+    membership  = dict(zip(metaclusters.index, studies))
     df = pd.DataFrame([{name: True
                     for name in names} for names in membership.values()],
                   index=membership.keys())
