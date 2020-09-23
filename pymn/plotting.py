@@ -94,7 +94,7 @@ def plotMetaNeighbor(data,
 def plotUpset(adata,
               study_col=None,
               ct_col=None,
-              mn_key='MetaNeigborsUS',
+              mn_key='MetaNeighborUS',
               metaclusters='MetaNeighborUS_1v1_metaclusters',
               outlier_label='outliers',
               show=True):

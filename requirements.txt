@@ -6,3 +6,4 @@ seaborn
 scanpy
 bottleneck
 networkx
+upsetplot
