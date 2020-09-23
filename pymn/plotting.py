@@ -47,8 +47,10 @@ def plotMetaNeighborUS(data,
                             figsize=figsize,
                             square=True,
                             **kwargs)
-    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xmajorticklabels(), fontsize = fontsize)
-    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_ymajorticklabels(), fontsize = fontsize)
+    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xmajorticklabels(),
+                                  fontsize=fontsize)
+    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_ymajorticklabels(),
+                                  fontsize=fontsize)
 
     if show:
         plt.show()
@@ -89,45 +91,60 @@ def plotMetaNeighbor(data,
         return ax
 
 
-def plotUpset(adata, study_col, ct_col, metaclusters='MetaNeighborUS_1v1_metaclusters', outlier_label = 'outliers', show=True):
+def plotUpset(adata,
+              study_col=None,
+              ct_col=None,
+              mn_key='MetaNeigborsUS',
+              metaclusters='MetaNeighborUS_1v1_metaclusters',
+              outlier_label='outliers',
+              show=True):
 
-    assert study_col in adata.obs_keys(), 'Study Col not in adata'
-    assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
+    if study_col is None:
+        study_col = adata.uns[f'{mn_key}_params']['study_col']
+    else:
+        assert study_col in adata.obs_keys(), 'Study Col not in adata'
+    if ct_col is None:
+        ct_col = adata.uns[f'{mn_key}_params']['ct_col']
+    else:
+        assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
+
     if type(metaclusters) is str:
-        assert metaclusters in adata.uns_keys(), 'Run extractMetaClusters or pass Metacluster Series'
+        assert metaclusters in adata.uns_keys(
+        ), 'Run extractMetaClusters or pass Metacluster Series'
         metaclusters = adata.uns[metaclusters]
     pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
     pheno = pheno.drop_duplicates().set_index('study_ct')
-    
+
     get_studies = lambda x: pheno.loc[x, study_col].values.tolist()
     studies = [get_studies(x) for x in metaclusters.values]
-    membership  = dict(zip(metaclusters.index, studies))
+    membership = dict(zip(metaclusters.index, studies))
     df = pd.DataFrame([{name: True
-                    for name in names} for names in membership.values()],
-                  index=membership.keys())
+                        for name in names} for names in membership.values()],
+                      index=membership.keys())
     df = df.fillna(False)
     df = df[df.index != outlier_label]
     df = df.groupby(df.columns.tolist(), as_index=False).size()
 
-    us = UpSet(df,
-      sort_categories_by=None,
-      sort_by='cardinality')
+    us = UpSet(df, sort_categories_by=None, sort_by='cardinality')
     if show:
         plt.show()
     else:
         return us
 
 
-def makeClusterGraph(adata, best_hits=None, low_threshold=0, hight_threshold=1):
+def makeClusterGraph(adata, best_hits=None, low_threshold=0,
+                     hight_threshold=1):
     filtered_hits = best_hits.copy()
-    filtered_hits.fillna(0,inplace=True)
-    filtered_hits.values[(best_hits.values > hight_threshold) | (best_hits.values < low_threshold)] = 0
+    filtered_hits.fillna(0, inplace=True)
+    filtered_hits.values[(best_hits.values > hight_threshold) |
+                         (best_hits.values < low_threshold)] = 0
     np.fill_diagonal(filtered_hits.vlaues, 0)
     G = nx.from_pandas_adjacency(filtered_hits)
     return G
 
+
 def plotClusterGraph(G, study_col, ct_col):
-    vertex_colors=None
+    vertex_colors = None
     if vertex_colors is None:
         vertex_colors = make_vertex_colors(G)
     G
