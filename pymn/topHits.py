@@ -49,17 +49,17 @@ def topHits(adata,
     top_cols.loc[:,'Mean_AUROC'] = cnv.lookup(cnv.index,
                                             top_cols['Study_ID|Celltype_2'])
 
-    top_cols['Reciprocal'] = top_cols['Mean_AUROC'].duplicated()
+    top_cols.loc[:,'Reciprocal'] = top_cols['Mean_AUROC'].duplicated()
 
     recip = top_cols[top_cols.Reciprocal]
     filt = top_cols.Mean_AUROC >= threshold
     res = pd.concat([recip, top_cols[filt]])
-    res['Match_type'] = np.concatenate([
+    res.loc[:,'Match_type'] = np.concatenate([
         np.repeat('Reciprocal_top_hit', res.shape[0] - filt.sum()),
         np.repeat(f'Above_{threshold}', filt.sum())
     ])
 
-    res = res[~res.Mean_AUROC.duplicated()]
+    res = res.loc[~res.Mean_AUROC.duplicated()]
     res = res[[
         "Study_ID|Celltype_1", "Study_ID|Celltype_2", "Mean_AUROC",
         "Match_type"
@@ -67,7 +67,7 @@ def topHits(adata,
     res.sort_values('Mean_AUROC', ascending=False, inplace=True)
     res.reset_index(drop=True, inplace=True)
     res.Mean_AUROC = np.round(res.Mean_AUROC, 2)
-    res = res[res.Mean_AUROC >= threshold]
+    res = res.loc[res.Mean_AUROC >= threshold]
     if save_uns:
         adata.uns[f'{mn_key}_topHits'] = res
     else:

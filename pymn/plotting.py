@@ -1,6 +1,7 @@
 from scipy.cluster import hierarchy
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.legend_handler import HandlerBase
 from anndata import AnnData
 import numpy as np
 from upsetplot import plot as UpSet
@@ -132,19 +133,108 @@ def plotUpset(adata,
         return us
 
 
-def makeClusterGraph(adata, best_hits=None, low_threshold=0,
-                     hight_threshold=1):
+def makeClusterGraph(adata,
+                     best_hits='MetaNeighborUS_1v1',
+                     low_threshold=0,
+                     hight_threshold=1,
+                     save_graph='MetaNeighborUS_metacluster_graph'):
+    if type(best_hits) is str:
+        assert best_hits in adata.uns_keys(
+        ), 'Run MetaNeighorUS in 1v1 mode to compute Best Hits'
+        best_hits = adata.uns[best_hits]
     filtered_hits = best_hits.copy()
     filtered_hits.fillna(0, inplace=True)
     filtered_hits.values[(best_hits.values > hight_threshold) |
                          (best_hits.values < low_threshold)] = 0
-    np.fill_diagonal(filtered_hits.vlaues, 0)
-    G = nx.from_pandas_adjacency(filtered_hits)
-    return G
+    np.fill_diagonal(filtered_hits.values, 0)
+    G = nx.from_pandas_adjacency(filtered_hits.T, nx.DiGraph)
+    if bool(save_graph):
+        adata.uns[save_graph] = G
+    else:
+        return G
 
 
-def plotClusterGraph(G, study_col, ct_col):
-    vertex_colors = None
-    if vertex_colors is None:
-        vertex_colors = make_vertex_colors(G)
-    G
+def plotClusterGraph(adata,
+                     G='MetaNeighborUS_metacluster_graph',
+                     best_hits='MetaNeighborUS_1v1',
+                     mn_key='MetaNeighborUS',
+                     node_list=None,
+                     study_col=None,
+                     ct_col=None,
+                     node_scale=1,
+                     figsize=(6, 6),
+                     show=True):
+    if type(G) is str:
+        assert G in adata.uns_keys(), 'Run Make Cluster Graph or Pass Graph'
+        G = adata.uns[G]
+    if type(best_hits) is str:
+        assert best_hits in adata.uns_keys(
+        ), 'Run MetaNeighborUS in fast 1v1 mode to create best_hits or pass it'
+        best_hits = adata.uns[best_hits]
+    if study_col is None:
+        study_col = adata.uns[f'{mn_key}_params']['study_col']
+        ct_col = adata.uns[f'{mn_key}_params']['ct_col']
+    
+    #Compute Edge Color
+    r, c = list(zip(*list(G.edges())))
+    es = best_hits.lookup(c, r)
+    es[np.isnan(es)] = 0
+    ec = pd.cut(es, [0, .5, 1], labels=['orange', 'black'])
+
+    pheno = adata.obs[[study_col, ct_col]].set_index(
+        pymn.join_labels(adata.obs[study_col].values,
+                         adata.obs[ct_col].values))
+    pheno2 = pheno.drop_duplicates()
+    ct_labels = dict(zip(list(G.nodes()), pheno2.loc[list(G.nodes()), ct_col]))
+    study_labels = pheno2.loc[list(G.nodes()), study_col].values
+
+    node_sizes = pd.cut(pheno.reset_index()['index'].value_counts(),
+                        [0, 10, 100, np.inf],
+                        labels=[150, 300, 450])[list(
+                            G.nodes())].astype(int).values * node_scale
+
+    if f'{study_col}_colors_dict' not in adata.uns_keys():
+        studies = np.unique(adata.obs[study_col])
+        pal = sns.color_palette('Set2', studies.shape[0])
+        color_pal = pd.Series(pal, index=studies)
+        adata.uns[f'{study_col}_colors_dict'] = color_pal
+    else:
+        color_pal = adata.uns[f'{study_col}_colors_dict']
+
+    #Prepare legend
+    class MarkerHandler(HandlerBase):
+        def create_artists(self, legend, tup, xdescent, ydescent, width,
+                           height, fontsize, trans):
+            return [
+                plt.Line2D([width / 2], [height / 2.],
+                           ls="",
+                           marker=tup[1],
+                           color=tup[0],
+                           transform=trans)
+            ]
+
+    handles = list(zip(color_pal.values, ['o'] * color_pal.shape[0])),
+
+    fig, ax = plt.subplots(figsize=figsize)
+    pos = nx.nx_agraph.graphviz_layout(
+        G,
+        prog='neato',
+        args=f'-Goverlap=false -size={figsize[0]},{figsize[0]}')
+    nx.draw_networkx_nodes(G,
+                           pos=pos,
+                           ax=ax,
+                           node_color=color_pal[study_labels].values,
+                           node_size=node_sizes)
+    nx.draw_networkx_edges(G, pos=pos, ax=ax, edge_color=ec)
+    nx.draw_networkx_labels(G, pos=pos, labels=ct_labels, font_size=font_size)
+    ax.axis('off')
+
+    ax.legend(handles,
+              color_pal.index,
+              handler_map={tuple: MarkerHandler()},
+              frameon=False)
+    if show:
+        plt.tight_layout()
+        plt.show()
+    else:
+        return ax
