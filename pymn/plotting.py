@@ -64,7 +64,6 @@ def plotMetaNeighbor(data,
                      mn_key='MetaNeighbor',
                      show=True,
                      figsize=(10, 6)):
-    print(np.sum(auroc))
     pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
     pheno = pheno.drop_duplicates().set_index('study_ct')
     if type(data) is AnnData:
@@ -181,6 +180,7 @@ def plotClusterGraph(adata,
                      node_scale=1,
                      figsize=(6, 6),
                      font_size=10,
+                     legend_loc='best',
                      show=True):
     if type(G) is str:
         assert G in adata.uns_keys(), 'Run Make Cluster Graph or Pass Graph'
@@ -250,7 +250,8 @@ def plotClusterGraph(adata,
     ax.legend(list(zip(color_pal.values, ['o'] * color_pal.shape[0])),
               color_pal.index,
               handler_map={tuple: MarkerHandler()},
-              frameon=False)
+              frameon=False,
+              loc=legend_loc)
     if show:
         plt.tight_layout()
         plt.show()
