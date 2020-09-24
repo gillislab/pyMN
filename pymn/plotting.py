@@ -201,19 +201,7 @@ def plotClusterGraph(adata,
     else:
         color_pal = adata.uns[f'{study_col}_colors_dict']
 
-    #Prepare legend
-    class MarkerHandler(HandlerBase):
-        def create_artists(self, legend, tup, xdescent, ydescent, width,
-                           height, fontsize, trans):
-            return [
-                plt.Line2D([width / 2], [height / 2.],
-                           ls="",
-                           marker=tup[1],
-                           color=tup[0],
-                           transform=trans)
-            ]
-
-    handles = list(zip(color_pal.values, ['o'] * color_pal.shape[0])),
+  
 
     fig, ax = plt.subplots(figsize=figsize)
     pos = nx.nx_agraph.graphviz_layout(
@@ -229,7 +217,18 @@ def plotClusterGraph(adata,
     nx.draw_networkx_labels(G, pos=pos, labels=ct_labels, font_size=font_size)
     ax.axis('off')
 
-    ax.legend(handles,
+    #Prepare legend
+    class MarkerHandler(HandlerBase):
+        def create_artists(self, legend, tup, xdescent, ydescent, width,
+                           height, fontsize, trans):
+            return [
+                plt.Line2D([width / 2], [height / 2.],
+                           ls="",
+                           marker=tup[1],
+                           color=tup[0],
+                           transform=trans)
+            ]
+    ax.legend(list(zip(color_pal.values, ['o'] * color_pal.shape[0])),
               color_pal.index,
               handler_map={tuple: MarkerHandler()},
               frameon=False)
