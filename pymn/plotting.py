@@ -163,6 +163,7 @@ def plotClusterGraph(adata,
                      ct_col=None,
                      node_scale=1,
                      figsize=(6, 6),
+                     font_size=10,
                      show=True):
     if type(G) is str:
         assert G in adata.uns_keys(), 'Run Make Cluster Graph or Pass Graph'
