@@ -226,7 +226,7 @@ def plotClusterGraph(adata,
     pos = nx.nx_agraph.graphviz_layout(
         G,
         prog='neato',
-        args=f'-Goverlap=false -size={figsize[0]},{figsize[0]}')
+        args=f'-Goverlap=true -size={figsize[0]},{figsize[0]}')
     nx.draw_networkx_nodes(G,
                            pos=pos,
                            ax=ax,
