@@ -187,7 +187,7 @@ def plotClusterGraph(adata,
     ct_labels = dict(zip(list(G.nodes()), pheno2.loc[list(G.nodes()), ct_col]))
     study_labels = pheno2.loc[list(G.nodes()), study_col].values
 
-    node_sizes = pd.cut(pheno.reset_index()['index'].value_counts(),
+    node_sizes = pd.cut(pheno.reset_index()['study_ct'].value_counts(),
                         [0, 10, 100, np.inf],
                         labels=[150, 300, 450])[list(
                             G.nodes())].astype(int).values * node_scale
