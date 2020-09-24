@@ -5,8 +5,6 @@ import bottleneck
 from scipy import sparse
 import gc
 
-import logging
-
 from .utils import *
 
 
