@@ -153,6 +153,23 @@ def makeClusterGraph(adata,
     else:
         return G
 
+def extendClusterSet(coi,
+                     adata=None,
+                     G='MetaNeighborUS_metacluster_graph',
+                     max_neighbor_distance=2):
+    if type(G) is str:
+        assert adata is not None, 'Must pass AnnData object if not passing Graph'
+        G = adata.uns[G]
+    if isinstance(coi, str):
+        result = set([coi])
+    else:
+        result = set(coi)
+    for _ in range(2):
+        to_add = []
+        for v in result:
+            to_add.extend(G.neighbors(v))
+        result.update(set(to_add))
+    return list(result)
 
 def plotClusterGraph(adata,
                      G='MetaNeighborUS_metacluster_graph',
@@ -176,6 +193,8 @@ def plotClusterGraph(adata,
         study_col = adata.uns[f'{mn_key}_params']['study_col']
         ct_col = adata.uns[f'{mn_key}_params']['ct_col']
     
+    if node_list is not None:
+        G = G.subgraph(node_list)
     #Compute Edge Color
     r, c = list(zip(*list(G.edges())))
     es = best_hits.lookup(c, r)
