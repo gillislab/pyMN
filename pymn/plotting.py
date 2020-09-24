@@ -6,7 +6,7 @@ from anndata import AnnData
 import numpy as np
 from upsetplot import plot as UpSet
 from .utils import *
-
+import networkx as nx
 
 def compute_nw_linkage(nw, method='average', **kwargs):
     nw2 = (nw + nw.T) / 2
