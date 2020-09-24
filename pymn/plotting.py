@@ -181,9 +181,7 @@ def plotClusterGraph(adata,
     es[np.isnan(es)] = 0
     ec = pd.cut(es, [0, .5, 1], labels=['orange', 'black'])
 
-    pheno = adata.obs[[study_col, ct_col]].set_index(
-        pymn.join_labels(adata.obs[study_col].values,
-                         adata.obs[ct_col].values))
+    pheno, _ , _ = create_cell_labels(adata, study_col, ct_col)
     pheno2 = pheno.drop_duplicates()
     ct_labels = dict(zip(list(G.nodes()), pheno2.loc[list(G.nodes()), ct_col]))
     study_labels = pheno2.loc[list(G.nodes()), study_col].values
