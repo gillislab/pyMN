@@ -4,11 +4,7 @@ import bottleneck
 
 import gc
 
-import logging
-
 from .utils import *
-
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 
 
@@ -53,7 +49,6 @@ def MetaNeighborUS(adata,
             cell_nv = metaNeighborUS_default(adata[:, var_genes], study_col, ct_col,
                                              node_degree_normalization)
         if symmetric_output:
-            logging.info("Making output Symmetric")
             cell_nv = (cell_nv + cell_nv.T) / 2
     else:
         cell_nv = MetaNeighborUS_from_trained(trained_model, adata[:, var_genes].X,
@@ -62,7 +57,6 @@ def MetaNeighborUS(adata,
                                               node_degree_normalization)
 
     cell_nv = cell_nv.astype(float)
-    logging.info("Done Computing MetaNeighbor")
     if save_uns:
         if one_vs_best:
             adata.uns[f'{mn_key}_1v1'] = cell_nv
@@ -90,7 +84,6 @@ def metaNeighborUS_default(adata, study_col, ct_col,
     sum_in = rank_data @ cell_labels.values
 
     if node_degree_normalization:
-        logging.info(f'Computing Node Degree Normalization')
         sum_all = np.sum(rank_data, axis=0)
         sum_in /= sum_all[:, None]
 
@@ -101,7 +94,6 @@ def metaNeighborUS_default(adata, study_col, ct_col,
 
 def compute_aurocs_default(sum_in, study_ct_uniq, pheno, study_col, ct_col):
     cell_nv = pd.DataFrame(index=study_ct_uniq)
-    logging.info(f'Computing AUROCs')
     for ct in study_ct_uniq:
         predicts_tmp = sum_in.copy()
         study, cellT = pheno[pheno.study_ct == ct].drop_duplicates()[[
