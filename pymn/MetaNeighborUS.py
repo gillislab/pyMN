@@ -8,9 +8,6 @@ import gc
 from .utils import *
 
 
-
-
-
 def MetaNeighborUS(adata,
                    study_col,
                    ct_col,
@@ -27,21 +24,24 @@ def MetaNeighborUS(adata,
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
 
     if trained_model is not None:
-        var_genes = adata.var_names[np.in1d(adata.var_names, trained_model.index)]
+        var_genes = adata.var_names[np.in1d(adata.var_names,
+                                            trained_model.index)]
         trained_model = trained_model.loc[var_genes]
     elif type(var_genes) is str:
-        assert var_genes in adata.var_keys(), f'If passing a string ({var_genes}) for var names, it must be in adata.var_keys()'
+        assert var_genes in adata.var_keys(
+        ), f'If passing a string ({var_genes}) for var names, it must be in adata.var_keys()'
         var_genes = adata.var_names[adata.var[var_genes]]
     else:
         var_genes = adata.var_names[np.in1d(adata.var_names, var_genes)]
 
     assert var_genes.shape[0] > 2, 'Must have at least 2 genes'
     if var_genes.shape[0] < 5:
-        warnings.warn('You should have at least 5 Variable Genes', category=UserWarning)
+        warnings.warn('You should have at least 5 Variable Genes',
+                      category=UserWarning)
 
     if trained_model is None:
         assert np.unique(
-        adata.obs[study_col].values).shape[0] > 1, 'Need more than 1 study'
+            adata.obs[study_col].values).shape[0] > 1, 'Need more than 1 study'
         if fast_version:
             #Fast verion doesn't work with Categorical datatype
             assert adata.obs[
@@ -49,20 +49,20 @@ def MetaNeighborUS(adata,
             assert adata.obs[
                 ct_col].dtype.name != 'category', 'Cell Type Col is a category type, cast to either string or int'
 
-            cell_nv = metaNeighborUS_fast(adata[:, var_genes].X, adata.obs[study_col],
+            cell_nv = metaNeighborUS_fast(adata[:, var_genes].X,
+                                          adata.obs[study_col],
                                           adata.obs[ct_col],
-                                          node_degree_normalization, one_vs_best)
+                                          node_degree_normalization,
+                                          one_vs_best)
         else:
-            cell_nv = metaNeighborUS_default(adata[:, var_genes], study_col, ct_col,
-                                             node_degree_normalization)
+            cell_nv = metaNeighborUS_default(adata[:, var_genes], study_col,
+                                             ct_col, node_degree_normalization)
         if symmetric_output:
             cell_nv = (cell_nv + cell_nv.T) / 2
     else:
-        cell_nv = MetaNeighborUS_from_trained(trained_model, adata[:, var_genes].X,
-                                              adata.obs[study_col].values,
-                                              adata.obs[ct_col].values,
-                                              node_degree_normalization,
-                                              one_vs_best)
+        cell_nv = MetaNeighborUS_from_trained(
+            trained_model, adata[:, var_genes].X, adata.obs[study_col].values,
+            adata.obs[ct_col].values, node_degree_normalization, one_vs_best)
 
     cell_nv = cell_nv.astype(float)
     if save_uns:
@@ -71,12 +71,12 @@ def MetaNeighborUS(adata,
         else:
             adata.uns[mn_key] = cell_nv
         adata.uns[f'{mn_key}_params'] = {
-        'fast':fast_version,
-        'node_degree_normalization':node_degree_normalization,
-        'study_col':study_col,
-        'ct_col':ct_col,
-        'one_vs_best':one_vs_best,
-        'symmetric_output':symmetric_output
+            'fast': fast_version,
+            'node_degree_normalization': node_degree_normalization,
+            'study_col': study_col,
+            'ct_col': ct_col,
+            'one_vs_best': one_vs_best,
+            'symmetric_output': symmetric_output
         }
     else:
         return cell_nv
@@ -164,15 +164,23 @@ def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best):
     return result
 
 
-def predict_and_score(X_test, LSC, cluster_centroids, n_cells_per_cluster,
-                      labels_order, node_degree_normalization, one_vs_best,pretrained=False):
+def predict_and_score(X_test,
+                      LSC,
+                      cluster_centroids,
+                      n_cells_per_cluster,
+                      labels_order,
+                      node_degree_normalization,
+                      one_vs_best,
+                      pretrained=False):
 
     if node_degree_normalization:
         if pretrained:
-            get_study_id = np.vectorize(lambda x : x.split('|')[0])
-            centroid_study_label = get_study_id(cluster_centroids.columns.values)
-		else:
-            centroid_study_label=LSC.drop_duplicates().loc[labels_order,'study'].values
+            get_study_id = np.vectorize(lambda x: x.split('|')[0])
+            centroid_study_label = get_study_id(
+                cluster_centroids.columns.values)
+        else:
+            centroid_study_label = LSC.drop_duplicates(
+            ).loc[labels_order, 'study'].values
         study_matrix = design_matrix(centroid_study_label)
         train_study_id = study_matrix.columns
         study_centroids = cluster_centroids.values @ study_matrix.values
@@ -216,7 +224,12 @@ def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
     ct_col = ct_col[~is_na]
     labels = join_labels(study_col, ct_col, replace_bar=True)
     LSC = pd.DataFrame({'study': study_col, 'cluster': ct_col}, index=labels)
-    result = predict_and_score(dat, LSC,
-                               cluster_centroids, n_cells_per_cluster,
-                               np.unique(labels), node_degree_normalization, one_vs_best,pretrained=True)
+    result = predict_and_score(dat,
+                               LSC,
+                               cluster_centroids,
+                               n_cells_per_cluster,
+                               np.unique(labels),
+                               node_degree_normalization,
+                               one_vs_best,
+                               pretrained=True)
     return result
