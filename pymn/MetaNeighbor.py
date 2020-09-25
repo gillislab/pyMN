@@ -59,7 +59,7 @@ def MetaNeighbor(adata,
         gc.collect()
     if save_uns:
         adata.uns[mn_key] = pd.DataFrame(results)
-        adata.obs[f'{mn_key}_params']  = {
+        adata.uns[f'{mn_key}_params']  = {
         'fast':fast_version,
         'node_degree_normalization': node_degree_normalization,
         'study_col':study_col,
