@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import bottleneck
+import warnings
 
 import gc
 
@@ -25,21 +26,21 @@ def MetaNeighborUS(adata,
     assert study_col in adata.obs_keys(), 'Study Col not in adata'
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
 
-    
+    if trained_model is not None:
+        var_genes = adata.var_names[np.in1d(adata.var_names, trained_model.index)]
+    elif type(var_genes) is str:
+        assert var_genes in adata.var_keys(), f'If passing a string ({var_genes}) for var names, it must be in adata.var_keys()'
+        var_genes = adata.var_names[adata.var[var_genes]]
+    else:
+        var_genes = adata.var_names[np.in1d(adata.var_names, var_genes)]
 
-    
+    assert var_genes.shape[0] > 2, 'Must have at least 2 genes'
+    if var_names.shape[0] < 5:
+        warnings.warn('You should have at least 5 Variable Genes', category=UserWarning)
 
     if trained_model is None:
-        if var_genes is not 'highly_variable':
-            var_genes = adata.var_names[np.in1d(adata.var_names, var_genes)]
-        else:
-            var_genes = adata.var_names[adata.var[var_genes]]
-
-        assert var_genes.shape[0] > 2, 'Must have at least 2 genes'
-        
         assert np.unique(
-            adata.obs[study_col].values).shape[0] > 1, 'Need more than 1 study'
-        
+        adata.obs[study_col].values).shape[0] > 1, 'Need more than 1 study'
         if fast_version:
             #Fast verion doesn't work with Categorical datatype
             assert adata.obs[
@@ -56,7 +57,7 @@ def MetaNeighborUS(adata,
         if symmetric_output:
             cell_nv = (cell_nv + cell_nv.T) / 2
     else:
-        cell_nv = MetaNeighborUS_from_trained(trained_model, adata.X,
+        cell_nv = MetaNeighborUS_from_trained(trained_model, adata[:, var_genes].X,
                                               adata.obs[study_col],
                                               adata.obs[ct_col],
                                               node_degree_normalization)
@@ -201,7 +202,7 @@ def predict_and_score(X_test, LSC, cluster_centroids, n_cells_per_cluster,
 
 def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
                                 node_degree_normalization):
-    dat = normalize_cells(test_data.X).T
+    dat = normalize_cells(test_data).T
     is_na = np.all(np.isfinite(dat), axis=0)
     dat = dat[:, ~is_na]
     cluster_centroids = train_model.iloc[1:]
