@@ -205,8 +205,8 @@ def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
     dat = normalize_cells(test_data).T
     is_na = np.all(np.isfinite(dat), axis=0)
     dat = dat[:, ~is_na]
-    cluster_centroids = train_model.iloc[1:]
-    n_cells_per_cluster = train_model.iloc[1].values
+    cluster_centroids = trained_model.iloc[1:]
+    n_cells_per_cluster = trained_model.iloc[1].values
 
     study_col = study_col[~is_na]
     ct_col = ct_col[~is_na]
