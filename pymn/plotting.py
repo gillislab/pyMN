@@ -65,7 +65,7 @@ def plotMetaNeighborUS(data,
 
 def order_rows_according_to_cols(M, alpha=1):
     M2 = M.values**alpha
-    row_score = bottleneck.nansum(M2 * np.arange(M2.shape[1]),
+    row_score = bottleneck.nansum(M2.T * np.arange(M2.shape[1]),
                                   axis=0) / bottleneck.nansum(M2, axis=1)
     return M.index[np.argsort(row_score)]
 
