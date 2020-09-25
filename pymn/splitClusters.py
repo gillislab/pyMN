@@ -38,7 +38,7 @@ def splitTrainClusters(data,k, mn_key='MetaNeighborUS',save_uns=True):
 	mn_s = mn_scores.loc[~row_is_na, ~col_is_na]
 	linkage = hierarchy.linkage(distance.pdist(mn_s.values).T,method='average')
 	membership = hierarchy.cut_tree(linkage, n_clusters=k)
-	membership_series = pd.Series(np.ravel(membership), index=mn_scores.index[is_na])
+	membership_series = pd.Series(np.ravel(membership), index=mn_scores.index[row_is_na])
 	
 	res = [membership_series.index[membership_series == i].values for i in range(k)]
 	if save_uns and type(data) is AnnData:
