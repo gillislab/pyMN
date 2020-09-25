@@ -8,9 +8,12 @@ from upsetplot import plot as UpSet
 from .utils import *
 import networkx as nx
 
-def compute_nw_linkage(nw, method='average', **kwargs):
-    nw2 = (nw + nw.T) / 2
-    nw2.fillna(0, inplace=True)
+def compute_nw_linkage(nw, method='average', make_sym = True, **kwargs):
+    if make_sym:
+        nw2 = (nw + nw.T) / 2
+        nw2.fillna(0, inplace=True)
+    else:
+        nw2 = nw
     return hierarchy.linkage((1 - nw2.values)[np.triu_indices(nw2.shape[0],
                                                               1)],
                              method=method,
@@ -19,7 +22,6 @@ def compute_nw_linkage(nw, method='average', **kwargs):
 
 def plotMetaNeighborUS(data,
                        threshold=None,
-                       draw_rownames=False,
                        mn_key='MetaNeighborUS',
                        show=True,
                        figsize=(6, 6),
@@ -48,9 +50,50 @@ def plotMetaNeighborUS(data,
                             figsize=figsize,
                             square=True,
                             **kwargs)
-    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xmajorticklabels(),
+    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xticklabels(),
                                   fontsize=fontsize)
-    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_ymajorticklabels(),
+    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_yticklabels(),
+                                  fontsize=fontsize)
+
+    if show:
+        plt.show()
+    else:
+        return cm
+
+
+def order_rows_according_to_cols(M, alpha=1):
+    M2 = M.values ** alpha
+    row_score = bottleneck.nansum(M2 * np.arange(M2.shape[1]), axis=0) / bottleneck.nansum(M2, axis=1)
+    return M.index[np.argsort(row_score)]
+
+
+def plotMetaNeighborUS_pretrained(data,
+                                  threshold=None,
+                                  mn_key='MetaNeighborUS',
+                                  show=True,
+                                  figsize=(6,6),
+                                  fontsize=6,
+                                  alpha_row=10,
+                                  **kwargs):
+    if type(data) is AnnData:
+        assert mn_key in data.uns_keys(
+        ), 'Must Run MetaNeighbor before plotting or pass results dataframe for data'
+        df = data.uns[mn_key].copy()
+    else:
+        df = data.copy()
+    df.fillna(0,inplace=True)
+    col_l = compute_nw_linkage(df.T, make_sym=False)
+    row_order = order_rows_according_to_cols(M, alpha=alpha_row)
+    df = df.loc[row_order]
+
+    if threshold is None:
+        cm = sns.clustermap(df, col_linkage=col_l, row_cluster=False, square=True, figsize=figsize, **kwargs)
+    else:
+        sns.clustermap(df >=threshold, col_linkage=col_l, row_cluster=False, square=True, figsize=figsize, **kwargs)
+
+    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xticklabels(),
+                                  fontsize=fontsize)
+    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_yticklabels(),
                                   fontsize=fontsize)
 
     if show:
