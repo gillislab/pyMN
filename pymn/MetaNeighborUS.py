@@ -28,6 +28,7 @@ def MetaNeighborUS(adata,
 
     if trained_model is not None:
         var_genes = adata.var_names[np.in1d(adata.var_names, trained_model.index)]
+        trained_model = trained_model.loc[var_genes]
     elif type(var_genes) is str:
         assert var_genes in adata.var_keys(), f'If passing a string ({var_genes}) for var names, it must be in adata.var_keys()'
         var_genes = adata.var_names[adata.var[var_genes]]
@@ -58,9 +59,10 @@ def MetaNeighborUS(adata,
             cell_nv = (cell_nv + cell_nv.T) / 2
     else:
         cell_nv = MetaNeighborUS_from_trained(trained_model, adata[:, var_genes].X,
-                                              adata.obs[study_col],
-                                              adata.obs[ct_col],
-                                              node_degree_normalization)
+                                              adata.obs[study_col].values,
+                                              adata.obs[ct_col].values,
+                                              node_degree_normalization,
+                                              one_vs_best)
 
     cell_nv = cell_nv.astype(float)
     if save_uns:
@@ -163,14 +165,15 @@ def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best):
 
 
 def predict_and_score(X_test, LSC, cluster_centroids, n_cells_per_cluster,
-                      labels_order, node_degree_normalization, one_vs_best):
+                      labels_order, node_degree_normalization, one_vs_best,pretrained=False):
 
     if node_degree_normalization:
-        centroid_study_label = LSC.drop_duplicates(
-        ).loc[labels_order]['study'].values
-        study_matrix = design_matrix(centroid_study_label)
-        train_study_id = study_matrix.columns
-
+        if pretrained:
+            
+		else:
+            centroid_study_label=LSC.drop_duplicates().loc[labels_order,'study'].values
+            study_matrix = design_matrix(centroid_study_label)
+            train_study_id = study_matrix.columns
         study_centroids = cluster_centroids.values @ study_matrix.values
         n_cells_per_study = n_cells_per_cluster @ study_matrix.values
 
@@ -201,9 +204,9 @@ def predict_and_score(X_test, LSC, cluster_centroids, n_cells_per_cluster,
 
 
 def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
-                                node_degree_normalization):
+                                node_degree_normalization, one_vs_best):
     dat = normalize_cells(test_data).T
-    is_na = np.all(np.isfinite(dat), axis=0)
+    is_na = np.any(np.isnan(dat), axis=0)
     dat = dat[:, ~is_na]
     cluster_centroids = trained_model.iloc[1:]
     n_cells_per_cluster = trained_model.iloc[1].values
@@ -214,5 +217,5 @@ def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
     LSC = pd.DataFrame({'study': study_col, 'cluster': ct_col}, index=labels)
     result = predict_and_score(dat, LSC,
                                cluster_centroids, n_cells_per_cluster,
-                               np.unique(labels), node_degree_normalization)
+                               np.unique(labels), node_degree_normalization, one_vs_best,pretrained=True)
     return result
