@@ -35,7 +35,7 @@ def MetaNeighborUS(adata,
         var_genes = adata.var_names[np.in1d(adata.var_names, var_genes)]
 
     assert var_genes.shape[0] > 2, 'Must have at least 2 genes'
-    if var_names.shape[0] < 5:
+    if var_genes.shape[0] < 5:
         warnings.warn('You should have at least 5 Variable Genes', category=UserWarning)
 
     if trained_model is None:
