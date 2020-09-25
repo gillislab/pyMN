@@ -49,8 +49,13 @@ def create_nw_spearman(data):
 
 
 @np.vectorize
-def join_labels(x, y):
-    return f'{x}|{y}'
+def join_labels(x, y, replace_bar = False):
+    if replace_bar:
+        warnings.warn('Replacing any | with a . in study column values')
+        a = x.replace('|','.')
+        return f'{a}|{y}'
+    else:
+        return f'{x}|{y}'
 
 
 def design_matrix(vec):

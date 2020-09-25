@@ -169,11 +169,12 @@ def predict_and_score(X_test, LSC, cluster_centroids, n_cells_per_cluster,
 
     if node_degree_normalization:
         if pretrained:
-            
+            get_study_id = np.vectorize(lambda x : x.split('|')[0])
+            centroid_study_label = get_study_id(cluster_centroids.columns.values)
 		else:
             centroid_study_label=LSC.drop_duplicates().loc[labels_order,'study'].values
-            study_matrix = design_matrix(centroid_study_label)
-            train_study_id = study_matrix.columns
+        study_matrix = design_matrix(centroid_study_label)
+        train_study_id = study_matrix.columns
         study_centroids = cluster_centroids.values @ study_matrix.values
         n_cells_per_study = n_cells_per_cluster @ study_matrix.values
 
@@ -213,7 +214,7 @@ def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
 
     study_col = study_col[~is_na]
     ct_col = ct_col[~is_na]
-    labels = join_labels(study_col, ct_col)
+    labels = join_labels(study_col, ct_col, replace_bar=True)
     LSC = pd.DataFrame({'study': study_col, 'cluster': ct_col}, index=labels)
     result = predict_and_score(dat, LSC,
                                cluster_centroids, n_cells_per_cluster,
