@@ -25,16 +25,21 @@ def MetaNeighborUS(adata,
     assert study_col in adata.obs_keys(), 'Study Col not in adata'
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
 
-    assert np.unique(
-        adata.obs[study_col].values).shape[0] > 1, 'Need more than 1 study'
+    
 
-    if var_genes is not 'highly_variable':
-        var_genes = adata.var_names[np.in1d(adata.var_names, var_genes)]
-    else:
-        var_genes = adata.var_names[adata.var[var_genes]]
-    assert var_genes.shape[0] > 2, 'Must have at least 2 genes'
+    
 
     if trained_model is None:
+        if var_genes is not 'highly_variable':
+            var_genes = adata.var_names[np.in1d(adata.var_names, var_genes)]
+        else:
+            var_genes = adata.var_names[adata.var[var_genes]]
+
+        assert var_genes.shape[0] > 2, 'Must have at least 2 genes'
+        
+        assert np.unique(
+            adata.obs[study_col].values).shape[0] > 1, 'Need more than 1 study'
+        
         if fast_version:
             #Fast verion doesn't work with Categorical datatype
             assert adata.obs[
@@ -51,7 +56,7 @@ def MetaNeighborUS(adata,
         if symmetric_output:
             cell_nv = (cell_nv + cell_nv.T) / 2
     else:
-        cell_nv = MetaNeighborUS_from_trained(trained_model, adata[:, var_genes].X,
+        cell_nv = MetaNeighborUS_from_trained(trained_model, adata.X,
                                               adata.obs[study_col],
                                               adata.obs[ct_col],
                                               node_degree_normalization)
