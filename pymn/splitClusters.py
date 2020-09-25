@@ -53,7 +53,7 @@ def splitTestClusters(data,k, mn_key='MetaNeighborUS',save_uns=True):
 	else:
 		mn_scores = data
 	
-	res  = splitTrainClusters(mn_scores, k, save_uns=False)
+	res  = splitTrainClusters(mn_scores.T, k, save_uns=False)
 	if save_uns and type(data) is AnnData:
 		data.uns[f'{mn_key}_split_test_{k}'] = res
 	else:
