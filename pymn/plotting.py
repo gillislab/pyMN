@@ -1,4 +1,5 @@
 from scipy.cluster import hierarchy
+from scipy.spatial import distance
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.legend_handler import HandlerBase
@@ -82,7 +83,7 @@ def plotMetaNeighborUS_pretrained(data,
     else:
         df = data.copy()
     df.fillna(0,inplace=True)
-    col_l = compute_nw_linkage(df.T, make_sym=False)
+    col_l = hierarchy.linkage(distance.pdist(df.values.T**alpha_row), method='average')
     row_order = order_rows_according_to_cols(M, alpha=alpha_row)
     df = df.loc[row_order]
 
