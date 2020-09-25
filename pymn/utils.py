@@ -3,6 +3,8 @@ from scipy import sparse
 import pandas as pd
 import bottleneck
 import gc
+import warnings
+
 
 def create_cell_labels(adata, study_col, ct_col):
     pheno = adata.obs[[study_col, ct_col]]
@@ -49,10 +51,10 @@ def create_nw_spearman(data):
 
 
 @np.vectorize
-def join_labels(x, y, replace_bar = False):
+def join_labels(x, y, replace_bar=False):
     if replace_bar:
         warnings.warn('Replacing any | with a . in study column values')
-        a = x.replace('|','.')
+        a = x.replace('|', '.')
         return f'{a}|{y}'
     else:
         return f'{x}|{y}'
@@ -100,29 +102,31 @@ def compute_aurocs(votes, positives=None):
     result /= n_neg[:, None]
     return pd.DataFrame(result, index=res_idx, columns=res_col)
 
+
 def compute_1v1_aurocs(votes, aurocs):
-    res = pd.DataFrame(index=aurocs.index,columns=aurocs.columns)
+    res = pd.DataFrame(index=aurocs.index, columns=aurocs.columns)
     for col in aurocs.columns:
         if np.all(np.isnan(aurocs[col].values)):
             continue
-        best, second, score = find_top_candidates(votes[col],aurocs[col])
+        best, second, score = find_top_candidates(votes[col], aurocs[col])
         res.loc[best, col] = score
         res.loc[second, col] = 1 - score
     return res
 
 
 def find_top_candidates(votes, aurocs):
-    candidates = aurocs.sort_values(ascending=False).head(5).index 
+    candidates = aurocs.sort_values(ascending=False).head(5).index
     best = candidates[0]
-    votes_best = votes[votes.index==best]
+    votes_best = votes[votes.index == best]
     score = 1
     second_best = candidates[1]
     for contender in candidates[1:]:
-        votes_contender = votes[votes.index==contender]
-        
-        pos = design_matrix(np.repeat([1,0], [votes_best.shape[0], votes_contender.shape[0]]))
+        votes_contender = votes[votes.index == contender]
+
+        pos = design_matrix(
+            np.repeat([1, 0], [votes_best.shape[0], votes_contender.shape[0]]))
         vt = pd.DataFrame(pd.concat([votes_best, votes_contender]))
-        auroc = compute_aurocs(vt, positives=pos).values[1,0]
+        auroc = compute_aurocs(vt, positives=pos).values[1, 0]
         if auroc < .5:
             second_best = best
             best = contender
