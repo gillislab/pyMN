@@ -9,7 +9,8 @@ from upsetplot import plot as UpSet
 from .utils import *
 import networkx as nx
 
-def compute_nw_linkage(nw, method='average', make_sym = True, **kwargs):
+
+def compute_nw_linkage(nw, method='average', make_sym=True, **kwargs):
     if make_sym:
         nw2 = (nw + nw.T) / 2
         nw2.fillna(0, inplace=True)
@@ -63,8 +64,9 @@ def plotMetaNeighborUS(data,
 
 
 def order_rows_according_to_cols(M, alpha=1):
-    M2 = M.values ** alpha
-    row_score = bottleneck.nansum(M2 * np.arange(M2.shape[1]), axis=0) / bottleneck.nansum(M2, axis=1)
+    M2 = M.values**alpha
+    row_score = bottleneck.nansum(M2 * np.arange(M2.shape[1]),
+                                  axis=0) / bottleneck.nansum(M2, axis=1)
     return M.index[np.argsort(row_score)]
 
 
@@ -72,7 +74,7 @@ def plotMetaNeighborUS_pretrained(data,
                                   threshold=None,
                                   mn_key='MetaNeighborUS',
                                   show=True,
-                                  figsize=(6,6),
+                                  figsize=(6, 6),
                                   fontsize=6,
                                   alpha_row=10,
                                   **kwargs):
@@ -82,15 +84,26 @@ def plotMetaNeighborUS_pretrained(data,
         df = data.uns[mn_key].copy()
     else:
         df = data.copy()
-    df.fillna(0,inplace=True)
-    col_l = hierarchy.linkage(distance.pdist(df.values.T**alpha_row), method='average')
-    row_order = order_rows_according_to_cols(M, alpha=alpha_row)
+    df.fillna(0, inplace=True)
+    col_l = hierarchy.linkage(distance.pdist(df.values.T**alpha_row),
+                              method='average')
+    row_order = order_rows_according_to_cols(df, alpha=alpha_row)
     df = df.loc[row_order]
 
     if threshold is None:
-        cm = sns.clustermap(df, col_linkage=col_l, row_cluster=False, square=True, figsize=figsize, **kwargs)
+        cm = sns.clustermap(df,
+                            col_linkage=col_l,
+                            row_cluster=False,
+                            square=True,
+                            figsize=figsize,
+                            **kwargs)
     else:
-        sns.clustermap(df >=threshold, col_linkage=col_l, row_cluster=False, square=True, figsize=figsize, **kwargs)
+        sns.clustermap(df >= threshold,
+                       col_linkage=col_l,
+                       row_cluster=False,
+                       square=True,
+                       figsize=figsize,
+                       **kwargs)
 
     cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xticklabels(),
                                   fontsize=fontsize)
@@ -196,6 +209,7 @@ def makeClusterGraph(adata,
     else:
         return G
 
+
 def extendClusterSet(coi,
                      adata=None,
                      G='MetaNeighborUS_metacluster_graph',
@@ -213,6 +227,7 @@ def extendClusterSet(coi,
             to_add.extend(G.neighbors(v))
         result.update(set(to_add))
     return list(result)
+
 
 def plotClusterGraph(adata,
                      G='MetaNeighborUS_metacluster_graph',
@@ -236,7 +251,7 @@ def plotClusterGraph(adata,
     if study_col is None:
         study_col = adata.uns[f'{mn_key}_params']['study_col']
         ct_col = adata.uns[f'{mn_key}_params']['ct_col']
-    
+
     if node_list is not None:
         G = G.subgraph(node_list)
     #Compute Edge Color
@@ -245,8 +260,8 @@ def plotClusterGraph(adata,
     es[np.isnan(es)] = 0
     ec = pd.cut(es, [0, .5, 1], labels=['orange', 'black'])
 
-    pheno, _ , _ = create_cell_labels(adata, study_col, ct_col)
-    pheno.set_index('study_ct',inplace=True)
+    pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
+    pheno.set_index('study_ct', inplace=True)
     pheno2 = pheno.drop_duplicates()
     ct_labels = dict(zip(list(G.nodes()), pheno2.loc[list(G.nodes()), ct_col]))
     study_labels = pheno2.loc[list(G.nodes()), study_col].values
@@ -263,8 +278,6 @@ def plotClusterGraph(adata,
         adata.uns[f'{study_col}_colors_dict'] = color_pal
     else:
         color_pal = adata.uns[f'{study_col}_colors_dict']
-
-  
 
     fig, ax = plt.subplots(figsize=figsize)
     pos = nx.nx_agraph.graphviz_layout(
@@ -291,6 +304,7 @@ def plotClusterGraph(adata,
                            color=tup[0],
                            transform=trans)
             ]
+
     ax.legend(list(zip(color_pal.values, ['o'] * color_pal.shape[0])),
               color_pal.index,
               handler_map={tuple: MarkerHandler()},
