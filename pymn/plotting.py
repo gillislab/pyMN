@@ -87,7 +87,7 @@ def plotMetaNeighborUS_pretrained(data,
     df.fillna(0, inplace=True)
     col_l = hierarchy.linkage(distance.pdist(df.values.T**alpha_row),
                               method='average')
-    row_order = order_rows_according_to_cols(df, alpha=alpha_row)
+    row_order = order_rows_according_to_cols(df.iloc[:, hierarchy.leaves_list(col_l)], alpha=alpha_row)
     df = df.loc[row_order]
 
     if threshold is None:
