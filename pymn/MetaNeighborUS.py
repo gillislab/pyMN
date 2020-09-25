@@ -26,7 +26,7 @@ def MetaNeighborUS(adata,
     if trained_model is not None:
         var_genes = adata.var_names[np.in1d(adata.var_names,
                                             trained_model.index)]
-        trained_model = pd.concat([trained_model.iloc[0], trained_model.loc[var_genes]])
+        trained_model = pd.concat([pd.DataFrame(trained_model.iloc[0]).T, trained_model.loc[var_genes]])
     elif type(var_genes) is str:
         assert var_genes in adata.var_keys(
         ), f'If passing a string ({var_genes}) for var names, it must be in adata.var_keys()'
@@ -227,7 +227,7 @@ def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
                                LSC,
                                cluster_centroids,
                                n_cells_per_cluster,
-                               np.unique(labels),
+                               cluster_centroids.columns,
                                node_degree_normalization,
                                one_vs_best,
                                pretrained=True)
