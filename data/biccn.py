@@ -191,9 +191,10 @@ for dataset in data_url.keys():
 
     adata.obs = adata.obs[common_data[1:]]
     adata.var_names_make_unique()
-    adatas.append(adata)
+    adatas.append(adata) #Store all datasets in a list
     gc.collect()
-joint_adata = concat(adatas, merge='same')
+
+joint_adata = concat(adatas, merge='same') #Concatenate all 7 datasets
 joint_adata.obs.columns = np.string_(joint_adata.obs.columns)
 
 joint_adata.write_h5ad(
