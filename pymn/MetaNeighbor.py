@@ -95,16 +95,17 @@ def score_low_mem(X, S, C, node_degree_normalization):
     res = pd.Series(res,cell_cols)
     return res
 
-
+import numba as nb
+@nb.jit()
 def compute_votes(candidates, voters, voter_id, node_degree_normalization):
 
-    votes = np.dot(candidates.T, (voters @ voter_id))
+    votes = np.dot(candidates.transpose(), np.dot(voters, voter_id))
     if node_degree_normalization:
         node_degree = np.sum(voter_id, axis=0)
         votes += node_degree
-        norm = (
-            candidates.T @ np.sum(voters, axis=1)) + voters.shape[1]
-        votes = (votes.T / norm).T
+        norm = np.dot(
+            candidates.transpose() , np.sum(voters, axis=1)) + voters.shape[1]
+        votes = (votes.transpose() / norm).transpose()
     return votes
 
 
