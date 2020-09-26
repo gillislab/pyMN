@@ -95,8 +95,7 @@ def score_low_mem(X, S, C, node_degree_normalization):
     res = pd.Series(res,cell_cols)
     return res
 
-import numba as nb
-@nb.jit()
+
 def compute_votes(candidates, voters, voter_id, node_degree_normalization):
 
     votes = np.dot(candidates.transpose(), np.dot(voters, voter_id))
