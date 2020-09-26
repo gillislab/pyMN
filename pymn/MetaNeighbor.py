@@ -15,6 +15,7 @@ def MetaNeighbor(adata,
                  fast_version=False,
                  node_degree_normalization=True,
                  save_uns=True,
+                 fast_hi_mem=False,
                  mn_key='MetaNeighbor'):
     assert study_col in adata.obs_keys(), 'Study Col not in adata'
     assert ct_col in adata.obs_keys(), 'Cluster Col not in adata'
@@ -35,7 +36,6 @@ def MetaNeighbor(adata,
 
     genesets = genesets.loc[shared_genes]
     genesets = genesets.loc[:, genesets.sum() > 0]
-    adata  = adata[:,shared_genes]
 
     assert genesets.shape[1] > 0, 'All Genesets are empty'
     genesets=genesets.astype(bool)
@@ -43,8 +43,12 @@ def MetaNeighbor(adata,
 
     study_vec = adata.obs[study_col].values 
     ct_vec = adata.obs[ct_col].values
+    if fast_hi_mem: #Stores as dense arrray (faster)
+        expression = adata[:,shared_genes].X.toarray()
+    else:
+        expression = adata[:,shared_genes].X
     for gset in genesets.columns:
-        adata_gs = adata.X[:,genesets[gset].values]
+        adata_gs = expression[:,np.where(genesets[gset].values)[0]]
         if fast_version:
             results[gset] = score_low_mem(adata_gs,
                                           study_vec,
@@ -77,34 +81,36 @@ def score_low_mem(X, S, C, node_degree_normalization):
     cell_labels = design_matrix(C)
     cell_cols = cell_labels.columns
     cell_labels = cell_labels.values
-
+    
     X_norm = np.asfortranarray(normalize_cells(X).T)
     studies = np.unique(S)
 
     res = {}
     for study in studies:
-        votes = compute_votes(X_norm[:, S == study], X_norm[:, S != study],
-                              cell_labels[S != study],
+        is_study = np.where(S==study)[0]
+        is_not_study = np.where(S!=study)[0]
+        votes = compute_votes(X_norm[:, is_study].T, X_norm[:, is_not_study],
+                              cell_labels[is_not_study],
                               node_degree_normalization)
         votes = pd.DataFrame(votes,
-                             index=C[S == study],
+                             index=C[is_study],
                              columns=cell_cols)
         roc = compute_aurocs(votes)
         res[study] = np.diag(roc.reindex(roc.columns).values)
     res = np.nanmean(pd.DataFrame(res), axis=1)
-    res = pd.Series(res,cell_cols)
+    res = pd.Series(res, index=cell_cols)
     return res
 
 
 def compute_votes(candidates, voters, voter_id, node_degree_normalization):
 
-    votes = np.dot(candidates.transpose(), np.dot(voters, voter_id))
+    votes = np.dot(candidates, np.dot(voters, voter_id))
     if node_degree_normalization:
         node_degree = np.sum(voter_id, axis=0)
         votes += node_degree
         norm = np.dot(
-            candidates.transpose() , np.sum(voters, axis=1)) + voters.shape[1]
-        votes = (votes.transpose() / norm).transpose()
+            candidates , np.sum(voters, axis=1)) + voters.shape[1]
+        votes/=norm[:,None]
     return votes
 
 
