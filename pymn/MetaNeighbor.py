@@ -86,12 +86,11 @@ def score_low_mem(X, S, C, node_degree_normalization):
                               node_degree_normalization)
         votes = pd.DataFrame(votes,
                              index=C[S == study],
-                             columns=cell_labels.columns)
+                             columns=cell_labels.columns);print(votes)
         roc = compute_aurocs(votes)
-        print(roc.shape)
-        res[study] = np.diag(roc.values)
-    res = pd.DataFrame(res).mean(axis=1)
-    res.index = cell_labels.columns
+        res[study] = np.diag(roc.reindex(roc.columns).values)
+    res = np.nanmean(pd.DataFrame(res), axis=1)
+    res = pd.Series(res,cell_labels.columns)
     return res
 
 
@@ -161,3 +160,4 @@ def score_default(X, S, C, node_degree_normalization, means=True):
     else:
         return pd.DataFrame(rocNV, index=cell_labels.columns, columns=studies)
     return scores
+
