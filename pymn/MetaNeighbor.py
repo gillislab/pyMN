@@ -88,6 +88,7 @@ def score_low_mem(X, S, C, node_degree_normalization):
                              index=C[S == study],
                              columns=cell_labels.columns)
         roc = compute_aurocs(votes)
+        print(roc.shape)
         res[study] = np.diag(roc.values)
     res = pd.DataFrame(res).mean(axis=1)
     res.index = cell_labels.columns

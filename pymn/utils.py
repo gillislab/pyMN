@@ -74,7 +74,7 @@ def normalize_cells(X, ranked=True):
     if ranked:
         res = bottleneck.rankdata(res, axis=1)
 
-    avg = bottleneck.nanmean(res, axis=1)
+    avg = np.mean(res, axis=1)
     res -= avg[:, None]
 
     norm = np.sqrt(bottleneck.nansum(res**2, axis=1))[:, None]
