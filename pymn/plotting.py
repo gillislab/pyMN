@@ -1,14 +1,22 @@
+import numpy as np
+
 from scipy.cluster import hierarchy
 from scipy.spatial import distance
+from scipy import stats
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.legend_handler import HandlerBase
+
 from anndata import AnnData
-import numpy as np
+
 from upsetplot import plot as UpSet
-from .utils import *
+
 import networkx as nx
 
+import scanpy as sc
+
+from .utils import *
 
 def compute_nw_linkage(nw, method='average', make_sym=True, **kwargs):
     if make_sym:
@@ -65,8 +73,8 @@ def plotMetaNeighborUS(data,
 
 def order_rows_according_to_cols(M, alpha=1):
     M2 = M.values**alpha
-    row_score = bottleneck.nansum(M2.T * np.arange(M2.shape[1])[:,None],
-                                  axis=0) / bottleneck.nansum(M2, axis=1)
+    row_score = np.nansum(M2.T * np.arange(M2.shape[1])[:,None],
+                                  axis=0) / np.nansum(M2, axis=1)
     return M.index[np.argsort(row_score)]
 
 
@@ -118,27 +126,51 @@ def plotMetaNeighborUS_pretrained(data,
 def plotMetaNeighbor(data,
                      ax=None,
                      mn_key='MetaNeighbor',
+                     ct_col=None,
                      show=True,
-                     figsize=(10, 6)):
-    pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
-    pheno = pheno.drop_duplicates().set_index('study_ct')
+                     color=None,
+                     palette='Set2',
+                     xtick_rotation=45):
+
     if type(data) is AnnData:
         assert mn_key in data.uns_keys(
         ), 'Must Run MetaNeighbor before plotting or pass results dataframe for data'
         df = data.uns[mn_key]
+        ct_col=data.uns[f'{mn_key}_params']['ct_col']
     else:
         df = data
-    if ax is None:
-        _, ax = plt.subplots(figsize=figsize)
 
     df.index.name = 'Cell Type'
     df = pd.melt(df.reset_index(), id_vars='Cell Type', value_name='AUROC')
-    fig, ax = plt.subplots
-
+    
+    fig, ax = plt.subplots()
     #TODO: Implement colormap that comes from the cell type name
-    sns.violinplot(data=df, x='Cell Type', y='AUROC', ax=ax)
-    sns.swarmplot(data=df, x='Cell Type', y='AUROC', ax=ax)
-    ax.set_xticklabels(ax.get_xticklabels(), ha='right', rotation=45)
+    if color == 'Cell Type' and AnnData:
+        if f'{ct_col}_colors_dict' not in data.uns_keys():
+            cell_types = np.unique(data.obs[ct_col])
+            pal = sns.color_palette(palette, cell_types.shape[0])
+            color_pal = pd.Series(pal, index=cell_types)
+            data.uns[f'{ct_col}_colors_dict'] = color_pal
+            color=color_pal
+            hue='Cell Type'
+            
+        else:
+            color_pal = data.uns[f'{ct_col}_colors_dict']
+            color=color_pal
+            hue='Cell Type'     
+    else:
+        color='.7'
+        hue=None
+        color_pal=None
+
+    sns.violinplot(data=df, 
+                   x='Cell Type', 
+                   y='AUROC', 
+                   ax=ax,
+                   inner='quartile',
+                   color=color,
+                   palette=color_pal)
+    ax.set_xticklabels(ax.get_xticklabels(), ha='right', rotation=xtick_rotation)
     sns.despine()
 
     if show:
@@ -314,3 +346,91 @@ def plotClusterGraph(adata,
         plt.show()
     else:
         return ax
+def plotDotPlot(adata,
+                gene_set,
+                normalize_library_size=True,
+                mn_key='MetaNeighbor',
+                study_col=None,
+                ct_col=None,
+                alpha_row=10,
+                average_expressing_only=True,
+                figsize=(10,6),
+                fontsize=10,
+                show=True):
+    if study_col is None:
+        study_col = adata.uns[f'{mn_key}_params']['study_col']
+    else:
+        assert study_col in adata.obs_keys(),'Must pass study col in obs keys'
+    if ct_col is None:
+        ct_col = adata.uns[f'{mn_key}_params']['ct_col']
+    else:
+        assert ct_col in adata.obs_keys(),'Must pass ct col in obs keys'
+    
+    gs = gene_set.index[gene_set.astype(bool)]
+    gs = np.intersect1d(gs, adata.var_names)
+
+
+    if normalize_library_size:
+        expr = adata[:,gs].to_df().T
+        expr /= np.ravel(adata.X.sum(axis=1)) * 1e6
+        
+    else:
+        expr = adata[:,gs].to_df().T
+
+    
+    label_matrix = design_matrix(
+        join_labels(adata.obs[study_col].values,
+                    adata.obs[ct_col].values))
+    label_matrix/=label_matrix.sum()
+    centroids = pd.DataFrame(expr.fillna(0).values.astype(float) @  label_matrix.values.astype(float),
+                             index=expr.index,
+                             columns=label_matrix.columns)
+    average_nnz = pd.DataFrame(((expr.values>0).astype(float) @ label_matrix.values),
+                             index=expr.index,
+                             columns=label_matrix.columns)
+    if average_expressing_only:
+        centroids/=average_nnz
+    centroids = centroids.T.astype(float).apply(stats.zscore).T
+    centroids.index.name='Gene'
+    average_nnz.index.name='Gene'
+    
+    centroids.reset_index(inplace=True)
+    average_nnz.reset_index(inplace=True)
+    pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
+    pheno.set_index('study_ct', inplace=True)
+    pheno2 = pheno.drop_duplicates()
+    
+    centroids = pd.melt(centroids,id_vars='Gene',value_name="average_expression",var_name='study_ct')
+    centroids.loc[:,'Cell Type'] = pheno2.loc[centroids['study_ct'].values, ct_col].values
+    centroids = centroids.groupby(['Gene','Cell Type']).mean().reset_index()
+    
+    average_nnz = pd.melt(average_nnz,id_vars='Gene',value_name="percent_expressing",var_name='study_ct')
+    average_nnz.loc[:,'Cell Type'] = pheno2.loc[average_nnz['study_ct'].values, ct_col].values
+    average_nnz = average_nnz.groupby(['Gene','Cell Type']).mean().reset_index()
+    
+    result = centroids.merge(average_nnz, how='inner',on=['Gene','Cell Type'])
+    
+    row_order = order_rows_according_to_cols(pd.pivot(result,
+                                                  index='Gene',
+                                                  columns='Cell Type',
+                                                  values='average_expression'),
+                                         alpha=10)
+    result.loc[:, 'Gene'] = pd.Categorical(result.Gene, categories=row_order)
+
+    result.sort_values('Gene', inplace=True)
+
+    result.loc[:, 'Gene'] = result['Gene'].astype(str)
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.scatterplot(data=result.fillna(result['average_expression'].min() * 1e-1),
+                         x='Cell Type',
+                         y='Gene',
+                         hue='average_expression',
+                         size='percent_expressing',
+                         palette='RdYlBu_r',ax=ax)
+    plt.yticks(fontsize=fontsize)
+    ax.legend(loc=(1, 0), frameon=False)
+    if show:
+        plt.show()
+    else:
+        return ax
+    

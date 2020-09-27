@@ -7,7 +7,7 @@ import warnings
 
 
 def create_cell_labels(adata, study_col, ct_col):
-    pheno = adata.obs[[study_col, ct_col]]
+    pheno = adata.obs[[study_col, ct_col]].copy()
 
     pheno.loc[:, 'study_ct'] = join_labels(pheno[study_col].values,
                                            pheno[ct_col].values)
