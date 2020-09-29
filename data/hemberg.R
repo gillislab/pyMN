@@ -20,7 +20,7 @@ rownames(my_data$lawlor) <- symbols[keep]
 my_data$baron$"cell type" <-my_data$baron$label
 my_data$muraro$"cell type" <-my_data$muraro$label
 
-fused_data<_MetaNeighbor::mergeSCE(my_data)
+fused_data<-MetaNeighbor::mergeSCE(my_data)
 
 
 Matrix::writeMM(counts(fused_data),'pancreas.mtx')
