@@ -85,6 +85,7 @@ def plotMetaNeighborUS_pretrained(data,
                                   figsize=(6, 6),
                                   fontsize=6,
                                   alpha_row=10,
+                                  alpha_col=1,
                                   **kwargs):
     if type(data) is AnnData:
         assert mn_key in data.uns_keys(
@@ -92,7 +93,7 @@ def plotMetaNeighborUS_pretrained(data,
         df = data.uns[mn_key].copy()
     else:
         df = data.copy()
-    col_l = hierarchy.linkage(distance.pdist(df.fillna(0).values.T**alpha_row),
+    col_l = hierarchy.linkage(df.fillna(0).values.T ** alpha_col,
                               method='average')
     row_order = order_rows_according_to_cols(df.fillna(0).iloc[:, hierarchy.leaves_list(col_l)], alpha=alpha_row)
     df = df.loc[row_order]
@@ -421,7 +422,7 @@ def plotDotPlot(adata,
 
     result.loc[:, 'Gene'] = result['Gene'].astype(str)
     fig, ax = plt.subplots(figsize=figsize)
-    sns.scatterplot(data=result.fillna(result['average_expression'].min() * 1e-1),
+    sns.scatterplot(data=result.fillna(result['average_expression'].min() ),
                          x='Cell Type',
                          y='Gene',
                          hue='average_expression',
