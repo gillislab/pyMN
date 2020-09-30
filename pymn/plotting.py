@@ -236,7 +236,7 @@ def makeClusterGraph(adata,
         best_hits = adata.uns[best_hits]
     filtered_hits = best_hits.copy()
     filtered_hits.fillna(0, inplace=True)
-    filtered_hits.values[(best_hits.values > hight_threshold) |
+    filtered_hits.values[(best_hits.values > high_threshold) |
                          (best_hits.values < low_threshold)] = 0
     np.fill_diagonal(filtered_hits.values, 0)
     G = nx.from_pandas_adjacency(filtered_hits.T, nx.DiGraph)
