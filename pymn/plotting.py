@@ -213,8 +213,12 @@ def plotUpset(adata,
     df = df.fillna(False)
     df = df[df.index != outlier_label]
     df = df.groupby(df.columns.tolist(), as_index=False).size()
-
-    us = UpSet(df, sort_categories_by=None, sort_by='cardinality')
+    cols = df.columns[:-1].copy()
+    for col in cols:
+        df.set_index(df[col], append=True, inplace=True)
+    df.index = df.index.droplevel(0)
+    df= df['size']
+    us = UpSet(df, sort_by='cardinality')
     if show:
         plt.show()
     else:
@@ -224,7 +228,7 @@ def plotUpset(adata,
 def makeClusterGraph(adata,
                      best_hits='MetaNeighborUS_1v1',
                      low_threshold=0,
-                     hight_threshold=1,
+                     high_threshold=1,
                      save_graph='MetaNeighborUS_metacluster_graph'):
     if type(best_hits) is str:
         assert best_hits in adata.uns_keys(
