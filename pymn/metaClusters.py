@@ -52,15 +52,15 @@ def score_meta_clusters(adata,
 
     
     if type(meta_clusters) is str:
-        assert meta_clusters in adata.uns_keys(), f'{mn_key} not in unstrucuted data, run extractMetaClusters or pass output of that function'
+        assert meta_clusters in adata.uns_keys(), f'{meta_clusters} not in unstrucuted data, run extractMetaClusters or pass output of that function'
         meta_clusters = adata.uns[meta_clusters]
     if type(best_hits) is str:
-        assert best_hits in adata.uns_keys(), f'{mn_key} not in unstrucuted data, run MetaNeighborUS in 1v1 fast mode or pass the output of that function'
+        assert best_hits in adata.uns_keys(), f'{best_hits} not in unstrucuted data, run MetaNeighborUS in 1v1 fast mode or pass the output of that function'
         best_hits = adata.uns[best_hits]
     if study_col is None:
-        study_col = adata.uns[mn_key]['study_col']
+        study_col = adata.uns[f'{mn_key}_params']['study_col']
     if ct_col is None:
-        ct_col = adata.uns[mn_key]['ct_col']
+        ct_col = adata.uns[f'{mn_key}_params']['ct_col']
 
     bh = best_hits.copy()
     bh.fillna(0, inplace=True)
