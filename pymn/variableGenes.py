@@ -2,16 +2,29 @@ import numpy as np
 import bottleneck
 from scipy import sparse
 import pandas as pd
-def compute_var_genes(adata, return_vect=True):
+
+
+def compute_var_genes(adata: AnnData, return_vect=True):
+    """Compute variable genes for an indiviudal dataset
+
+
+    Arguments:
+        adata {[type]} -- AnnData object containing a signle dataset
+
+    Keyword Arguments:
+        return_vect {bool} -- Boolean to store as adata.var['higly_variance']
+            or return vector of booleans for varianble gene membership (default: {False})
+
+    Returns:
+        np.ndarray -- None if saving in adata.var['highly_variable'], array of booleans if returning of length ngenes
+    """
 
     if sparse.issparse(adata.X):
         median = csc_median_axis_0(sparse.csc_matrix(adata.X))
     else:
         median = bottleneck.median(adata.X, axis=0)
     variance = np.var(adata.X.A, axis=0)
-    bins = np.quantile(median,
-                       q=np.linspace(0, 1, 11),
-                       interpolation='midpoint')
+    bins = np.quantile(median, q=np.linspace(0, 1, 11), interpolation="midpoint")
     digits = np.digitize(median, bins, right=True)
 
     selected_genes = np.zeros_like(digits)
@@ -25,10 +38,26 @@ def compute_var_genes(adata, return_vect=True):
     if return_vect:
         return selected_genes.astype(bool)
     else:
-        adata.var['highly_variable'] = selected_genes.astype(bool)
+        adata.var["highly_variable"] = selected_genes.astype(bool)
 
 
-def variableGenes(adata, study_col, return_vect=False):
+def variableGenes(adata: AnnData, study_col: str, return_vect=False):
+    """Comptue variable genes across data sets
+
+    Identifies genes with high variance compared to their median expression
+    (top quartile) within each experimentCertain function
+
+    Arguments:
+        adata {AnnData} -- AnnData object containing all the single cell experiements concatenated together
+        study_col {str} -- String referencing column in andata.obs that identifies study label for datasets
+
+    Keyword Arguments:
+        return_vect {bool} -- Boolean to store as adata.var['higly_variance']
+            or return vector of booleans for varianble gene membership (default: {False})
+
+    Returns:
+        np.ndarray -- None if saving in adata.var['highly_variable'], array of booleans if returning of length ngenes
+    """
 
     assert study_col in adata.obs_keys(), "Study Col not in obs data"
 
@@ -44,7 +73,7 @@ def variableGenes(adata, study_col, return_vect=False):
     if return_vect:
         return var_genes
     else:
-        adata.var['highly_variable'] = var_genes
+        adata.var["highly_variable"] = var_genes
 
 
 def _get_elem_at_rank(rank, data, n_negative, n_zeros):
@@ -70,8 +99,10 @@ def _get_median(data, n_zeros):
     if is_odd:
         return _get_elem_at_rank(middle, data, n_negative, n_zeros)
 
-    return (_get_elem_at_rank(middle - 1, data, n_negative, n_zeros) +
-            _get_elem_at_rank(middle, data, n_negative, n_zeros)) / 2.
+    return (
+        _get_elem_at_rank(middle - 1, data, n_negative, n_zeros)
+        + _get_elem_at_rank(middle, data, n_negative, n_zeros)
+    ) / 2.0
 
 
 def csc_median_axis_0(X):
@@ -96,7 +127,7 @@ def csc_median_axis_0(X):
     for f_ind, (start, end) in enumerate(zip(indptr[:-1], indptr[1:])):
 
         # Prevent modifying X in place
-        data = np.copy(X.data[start: end])
+        data = np.copy(X.data[start:end])
         nz = n_samples - data.size
         median[f_ind] = _get_median(data, nz)
 
