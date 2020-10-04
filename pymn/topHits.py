@@ -5,10 +5,10 @@ from .utils import create_cell_labels, design_matrix
 
 
 def topHits(
-    adata: AnnData,
+    adata,
     study_col=None,
     ct_col=None,
-    cell_nv=None.DataFrame,
+    cell_nv=None,
     mn_key="MetaNeighborUS",
     save_uns=True,
     threshold=0.95,

@@ -9,10 +9,10 @@ from .utils import *
 
 
 def MetaNeighbor(
-    adata: AnnData,
-    study_col: str,
-    ct_col: str,
-    genesets: pd.DataFrame,
+    adata,
+    study_col,
+    ct_col,
+    genesets,
     node_degree_normalization=True,
     save_uns=True,
     fast_version=False,
@@ -104,8 +104,7 @@ def MetaNeighbor(
 
 
 def score_low_mem(
-    X: array, S: vector, C: vector, node_degree_normalization: bool
-) -> pd.Series:
+    X, S, C, node_degree_normalization):
     """Compute Neighbor Voting using low memory method
 
     Compute using the approximate low memory method
@@ -150,11 +149,11 @@ def score_low_mem(
 
 
 def compute_votes(
-    candidates: np.ndarray,
-    voters: np.ndarray,
-    voter_id: np.ndarray,
-    node_degree_normalization: bool,
-) -> np.ndarray:
+    candidates,
+    voters,
+    voter_id,
+    node_degree_normalization,
+):
     """Comptue neighbor voting for a given set of candidates and voters
 
 
@@ -178,8 +177,8 @@ def compute_votes(
 
 
 def score_default(
-    X: np.ndarray, S: vector, C: vector, node_degree_normalization: bool, means=True
-) -> pd.Series:
+    X, S, C, node_degree_normalization, means=True
+):
     """Compute ROCs according to the default procedure
 
      Default procedure computes ranked cell similarity matrix and then uses neighbor voting

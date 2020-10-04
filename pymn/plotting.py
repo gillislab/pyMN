@@ -19,7 +19,7 @@ import scanpy as sc
 from .utils import *
 
 
-def compute_nw_linkage(nw: pd.DataFrame, method="average", make_sym=True, **kwargs):
+def compute_nw_linkage(nw, method="average", make_sym=True, **kwargs):
     """Compute the Network Linkage for a similarity matrix
 
     Converts a similarity matrix to a distance matrix and computes linkage
@@ -46,7 +46,7 @@ def compute_nw_linkage(nw: pd.DataFrame, method="average", make_sym=True, **kwar
 
 
 def plotMetaNeighborUS(
-    data: AnnData,
+    data,
     threshold=None,
     mn_key="MetaNeighborUS",
     show=True,
@@ -102,7 +102,7 @@ def plotMetaNeighborUS(
         return cm
 
 
-def order_rows_according_to_cols(M: pd.DataFrame, alpha=1.0):
+def order_rows_according_to_cols(M, alpha=1.0):
     """Helper function for clustering rows
 
     Cluster rows to make high values along the diagonal
@@ -124,7 +124,7 @@ def order_rows_according_to_cols(M: pd.DataFrame, alpha=1.0):
 
 
 def plotMetaNeighborUS_pretrained(
-    data: AnnData,
+    data,
     threshold=None,
     mn_key="MetaNeighborUS",
     show=True,
@@ -132,8 +132,7 @@ def plotMetaNeighborUS_pretrained(
     fontsize=6,
     alpha_row=10,
     alpha_col=1,
-    **kwargs,
-):
+    **kwargs):
     """[summary]
 
      Plots rectangular AUROC heatmap, clustering train cell types (columns)
@@ -199,7 +198,7 @@ def plotMetaNeighborUS_pretrained(
 
 
 def plotMetaNeighbor(
-    data: AnnData,
+    data,
     mn_key="MetaNeighbor",
     ct_col=None,
     show=True,
@@ -278,14 +277,13 @@ def plotMetaNeighbor(
 
 
 def plotUpset(
-    adata: AnnData,
+    adata,
     study_col=None,
     ct_col=None,
     mn_key="MetaNeighborUS",
     metaclusters="MetaNeighborUS_1v1_metaclusters",
     outlier_label="outliers",
-    show=True,
-):
+    show=True):
     """Plot UpSet plot for intersections between datasets and metaclusters
 
     Shows how replicability depends on hte input dataset
@@ -342,7 +340,7 @@ def plotUpset(
 
 
 def makeClusterGraph(
-    adata: AnnData,
+    adata,
     best_hits="MetaNeighborUS_1v1",
     low_threshold=0,
     high_threshold=1,
@@ -384,11 +382,10 @@ def makeClusterGraph(
 
 
 def extendClusterSet(
-    coi: str or List[str],
+    coi,
     adata=None,
     G="MetaNeighborUS_metacluster_graph",
-    max_neighbor_distance=2,
-) -> List:
+    max_neighbor_distance=2):
     """Extend cluster set to nearest neighbor on cluster graph
 
     Note that the graph is directed, i.e. the neighbors are retrieved
@@ -422,7 +419,7 @@ def extendClusterSet(
 
 
 def plotClusterGraph(
-    adata: AnnData,
+    adata,
     G="MetaNeighborUS_metacluster_graph",
     best_hits="MetaNeighborUS_1v1",
     mn_key="MetaNeighborUS",
@@ -554,8 +551,8 @@ def plotClusterGraph(
 
 
 def plotDotPlot(
-    adata: AnnData,
-    gene_set: pd.Series,
+    adata,
+    gene_set,
     normalize_library_size=True,
     mn_key="MetaNeighbor",
     study_col=None,
@@ -564,8 +561,7 @@ def plotDotPlot(
     average_expressing_only=True,
     figsize=(10, 6),
     fontsize=10,
-    show=True,
-):
+    show=True):
     """Plot dot plot showing expression of a gene set across cell types.
 
     The size of each dot reflects the number of cell that express a gene,

@@ -2,8 +2,7 @@ from .utils import *
 
 
 def trainModel(
-    adata: AnnData, study_col: str, ct_col: str, var_genes="highly_variable"
-) -> pd.DataFrame:
+    adata, study_col, ct_col, var_genes="highly_variable"):
     """Pretrains model for the unsupervised version of MetaNeighbor
 
     When comparing clusters to a large reference dataset, this function

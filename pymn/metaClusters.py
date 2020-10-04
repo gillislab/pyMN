@@ -5,9 +5,7 @@ from .utils import create_cell_labels
 from anndata import AnnData
 
 
-def extractMetaClusters(
-    data: AnnData, mn_key="MetaNeighborUS_1v1", threshold=0, outlier_label="outliers"
-):
+def extractMetaClusters(data, mn_key="MetaNeighborUS_1v1", threshold=0, outlier_label="outliers"):
     """Extract MetaClusters from MetaNeighborUS results
 
     Extract groups of reciprocal top hits form a 1vsBest AUROC matrix
@@ -60,7 +58,7 @@ def extractMetaClusters(
         return pd.Series(result)
 
 
-def make_graph(best_hits: pd.DataFrame, threshold=0):
+def make_graph(best_hits, threshold=0):
     """Helper function to make a graph from AUROC matrix
 
     Makes graph from reciprocal top hits
@@ -84,7 +82,7 @@ def make_graph(best_hits: pd.DataFrame, threshold=0):
 
 
 def score_meta_clusters(
-    adata: AnnData,
+    adata,
     meta_clusters="MetaNeighborUS_1v1_metaclusters",
     best_hits="MetaNeighborUS_1v1",
     mn_key="MetaNeighborUS",

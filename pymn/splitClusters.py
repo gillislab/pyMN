@@ -7,7 +7,7 @@ from .plotting import compute_nw_linkage
 from anndata import AnnData
 
 
-def splitClusters(data: AnnData, k: int, mn_key="MetaNeighborUS", save_uns=True):
+def splitClusters(data, k, mn_key="MetaNeighborUS", save_uns=True):
     """Split Clusters using Hierarchical Clustering
 
     This function computes hierarchical clustering to group similar clusters,
@@ -48,7 +48,7 @@ def splitClusters(data: AnnData, k: int, mn_key="MetaNeighborUS", save_uns=True)
         return res
 
 
-def splitTrainClusters(data: AnnData, k: int, mn_key="MetaNeighborUS", save_uns=True):
+def splitTrainClusters(data, k, mn_key="MetaNeighborUS", save_uns=True):
     """Split Clusters using Hierarchical Clustering for Training clusters
 
     Works on training clusters for results from pretrained model
@@ -94,7 +94,7 @@ def splitTrainClusters(data: AnnData, k: int, mn_key="MetaNeighborUS", save_uns=
         return res
 
 
-def splitTestClusters(data: AnnData, k: int, mn_key="MetaNeighborUS", save_uns=True):
+def splitTestClusters(data, k, mn_key="MetaNeighborUS", save_uns=True):
     """Split Clusters using Hierarchical Clustering for Training clusters
 
     Works on testing clusters for results from pretrained model

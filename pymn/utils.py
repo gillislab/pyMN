@@ -6,7 +6,7 @@ import gc
 import warnings
 
 
-def create_cell_labels(adata: Anndata, study_col: str, ct_col: str):
+def create_cell_labels(adata, study_col, ct_col):
     """Create Cell Labels and Study Cell Type Labels
 
     Utility function that takes anndata object and study column and cell type columns.
@@ -33,7 +33,7 @@ def create_cell_labels(adata: Anndata, study_col: str, ct_col: str):
     return pheno, cell_labels, study_ct_uniq
 
 
-def rank(data: np.ndarray, nan_val: float) -> None:
+def rank(data, nan_val):
     """Rank normalize data
 
     Rank standardize inplace
@@ -54,7 +54,7 @@ def rank(data: np.ndarray, nan_val: float) -> None:
     gc.collect()
 
 
-def create_nw_spearman(data: array) -> np.ndarray:
+def create_nw_spearman(data):
     """Create Co-expreesion network
 
     Computes co-expression nnetwork using Spearman correaltion and then ranking the network
@@ -77,7 +77,7 @@ def create_nw_spearman(data: array) -> np.ndarray:
 
 
 @np.vectorize
-def join_labels(x: vector, y: vector, replace_bar=False) -> ndarray:
+def join_labels(x, y, replace_bar=False):
     """Join Study and cell type labels
 
     Vectorizied function for joining labels for study and cell type, '$STUDY|$CELLTYPE'
@@ -103,7 +103,7 @@ def join_labels(x: vector, y: vector, replace_bar=False) -> ndarray:
         return f"{x}|{y}"
 
 
-def design_matrix(vec: Vector) -> pd.DataFrame:
+def design_matrix(vec):
     """Create design matrix from a vector
 
     Creates design matrix of observations x features of floats (0,1)
@@ -121,7 +121,7 @@ def design_matrix(vec: Vector) -> pd.DataFrame:
     return pd.get_dummies(vec).set_index(vec).astype(float)
 
 
-def normalize_cells(X: array, ranked=True) -> np.ndarray:
+def normalize_cells(X, ranked=True):
     """
 
     Scale matrix sthat all cells (rows) sum to 1 and have l2-norm of 1
@@ -150,7 +150,7 @@ def normalize_cells(X: array, ranked=True) -> np.ndarray:
     return res
 
 
-def compute_aurocs(votes: pd.DataFrame, positives=None) -> pd.DataFrame:
+def compute_aurocs(votes, positives=None):
     """Compute AUORCs based on neighbors voting and candidates identities
 
 
@@ -180,7 +180,7 @@ def compute_aurocs(votes: pd.DataFrame, positives=None) -> pd.DataFrame:
     return pd.DataFrame(result, index=res_idx, columns=res_col)
 
 
-def compute_1v1_aurocs(votes: pd.DataFrame, aurocs: pd.DataFrame) -> pd.DataFrame:
+def compute_1v1_aurocs(votes, aurocs):
     """Compute 1v1 AUROCs based on one-vs-best setting
 
     Iterates through voters and finds their top candidates
@@ -201,7 +201,7 @@ def compute_1v1_aurocs(votes: pd.DataFrame, aurocs: pd.DataFrame) -> pd.DataFram
     return res
 
 
-def find_top_candidates(votes: pd.Series, aurocs: pd.Series):
+def find_top_candidates(votes, aurocs):
     """Find best and second best candidate
 
     Helper function for compute_1v1_aurocs

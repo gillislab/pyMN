@@ -9,9 +9,9 @@ from .utils import *
 
 
 def MetaNeighborUS(
-    adata: AnnData,
-    study_col: str,
-    ct_col: str,
+    adata,
+    study_col,
+    ct_col,
     var_genes="highly_variable",
     symmetric_output=True,
     node_degree_normalization=True,
@@ -19,8 +19,7 @@ def MetaNeighborUS(
     one_vs_best=False,
     trained_model=None,
     save_uns=True,
-    mn_key="MetaNeighborUS",
-) -> None:
+    mn_key="MetaNeighborUS"):
     """Runs Unsupervised version of MetaNeighbor
 
     When it is difficult to know how cell type labels compare across datasets this
@@ -137,9 +136,7 @@ def MetaNeighborUS(
         return cell_nv
 
 
-def metaNeighborUS_default(
-    adata: AnnData, study_col: str, ct_col: str, node_degree_normalization: bool
-):
+def metaNeighborUS_default(adata, study_col, ct_col, node_degree_normalization):
     """Runs MetaNeighbor using Default Method
 
 
@@ -168,12 +165,11 @@ def metaNeighborUS_default(
 
 
 def compute_aurocs_default(
-    sum_in: np.ndarray,
-    study_ct_uniq: vector,
-    pheno: pd.DataFrame,
-    study_col: str,
-    ct_col: str,
-) -> pd.DataFrame:
+    sum_in,
+    study_ct_uniq,
+    pheno,
+    study_col,
+    ct_col):
     """Helper function to compute AUROCs from votes matrix of cells
 
 
@@ -214,9 +210,7 @@ def compute_aurocs_default(
     return cell_nv
 
 
-def metaNeighborUS_fast(
-    X: array, S: vector, C: vector, node_degree_normalization: bool, one_vs_best: bool
-) -> pd.DataFrame:
+def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best):
     """Fast MetaNeighbor Approximation Helper function
 
 
@@ -290,15 +284,14 @@ def metaNeighborUS_fast(
 
 
 def predict_and_score(
-    X_test: np.ndarray,
-    LSC: pd.DataFrame,
-    cluster_centroids: pd.DataFrame,
-    n_cells_per_cluster: vector,
-    labels_order: vector,
-    node_degree_normalization: bool,
-    one_vs_best: bool,
-    pretrained=False,
-) -> pd.DataFrame:
+    X_test,
+    LSC,
+    cluster_centroids,
+    n_cells_per_cluster,
+    labels_order,
+    node_degree_normalization,
+    one_vs_best,
+    pretrained=False):
     """[summary]
 
     [description]
@@ -358,13 +351,12 @@ def predict_and_score(
 
 
 def MetaNeighborUS_from_trained(
-    trained_model: pd.DataFrame,
-    test_data: array,
-    study_col: vector,
-    ct_col: vector,
-    node_degree_normalization: bool,
-    one_vs_best: bool,
-) -> pd.DataFrame:
+    trained_model,
+    test_data,
+    study_col,
+    ct_col,
+    node_degree_normalization,
+    one_vs_best):
     """MetaNeighbor from Pretrained model
 
     Runs MetaNeighbor using a pretrained model in the fast approximate version

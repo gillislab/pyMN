@@ -4,7 +4,7 @@ from scipy import sparse
 import pandas as pd
 
 
-def compute_var_genes(adata: AnnData, return_vect=True):
+def compute_var_genes(adata, return_vect=True):
     """Compute variable genes for an indiviudal dataset
 
 
@@ -41,7 +41,7 @@ def compute_var_genes(adata: AnnData, return_vect=True):
         adata.var["highly_variable"] = selected_genes.astype(bool)
 
 
-def variableGenes(adata: AnnData, study_col: str, return_vect=False):
+def variableGenes(adata, study_col, return_vect=False):
     """Comptue variable genes across data sets
 
     Identifies genes with high variance compared to their median expression
