@@ -7,7 +7,7 @@ Please refer the [notebooks](./notebooks) for tutorials on how to use MetaNeighb
 The code was translated from R to Python, you can find the R package in this (repository)[https://github.com/gillislab/MetaNeighbor/]
 
 
-##Installation
+## Installation
 
 pyMN depends on mostly standard numerical and single cell RNAseq analysis python packages.
  * Numpy
@@ -22,10 +22,17 @@ pyMN depends on mostly standard numerical and single cell RNAseq analysis python
 
 The two less standard packages are pygraphviz and bottleneck
 
+### pygraphviz
 
-### Unix (Mac and Linux)
-On unix based systems installing they should not have any issues with them being installed by pip from the setup.py script as long as you have a C complier installed in your path
+There is currently (as of October 2020) a bug in the installation pygraphviz on pip. For mac and linux the conda installation `conda install -c anaconda pygraphviz` appears to work without issues, but for Windows you likely will need to use a distribution from this personal conda channel. `conda install -c alubbock pygraphviz`,
+You can learn more about these issues [on this stackoverflow thread](https://stackoverflow.com/questions/59707234/issues-installing-pygrahviz-fatal-error-c1083-cannot-open-include-file-graph)
 
+
+### bottleneck
+On UNIX we haven't seen any issues with installing bottleneck using pip or conda, but on Windows we have found that, without already having Microsoft Visual C++ Build Tools already installed on your system, the easiest way to install bottleneck is with `conda install -c anaconda bottleneck`. If you have MVCBT then it should work with pip when you install pyMN. 
+
+
+### Installing pyMN
 You can either install this by cloning the repository, moving into it and then running:
   `python setup.py install` 
 
@@ -35,21 +42,6 @@ You can either install this by cloning the repository, moving into it and then r
 
 If you don't want to clone the repository you can just run:
 	`pip install git+https://github.com/gillislab/pyMN#egg=pymn`
-
-
-### Windows
-
-After resolving the issues with the two dependencies below you can follow the Unix instructions above. The dependencies difficulties are easiest solved using conda to install them. 
-
-#### pygraphviz
-
-There is currently (as of October 2020) a bug in the installation pygraphviz on most standard package managers (pip and conda).
-It can be installed using this command from a personal conda channel `conda install -c alubbock pygraphviz`
-You can learn more about these issues [on this stackoverflow thread](https://stackoverflow.com/questions/59707234/issues-installing-pygrahviz-fatal-error-c1083-cannot-open-include-file-graph)
-
-#### bottleneck
-
-If you already have Microsoft Visual C++ Build Tools install on your computer then bottleneck should install fine with pip. If you do not, then it is easiest to install bottleneck with anaconda using `conda install -c anaconda bottleneck` 
 
 
 ## Usage
