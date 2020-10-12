@@ -327,11 +327,12 @@ def plotUpset(
     df = df.fillna(False)
     df = df[df.index != outlier_label]
     df = df.groupby(df.columns.tolist(), as_index=False).size()
-    cols = df.columns[:-1].copy()
-    for col in cols:
-        df.set_index(df[col], append=True, inplace=True)
-    df.index = df.index.droplevel(0)
-    df = df["size"]
+    if type(df) is not pd.Series: #For pandas versions <1.0.0 size returns the correct series
+        cols = df.columns[:-1].copy()
+        for col in cols:
+            df.set_index(df[col], append=True, inplace=True)
+        df.index = df.index.droplevel(0)
+        df = df["size"]
     us = UpSet(df, sort_by="cardinality")
     if show:
         plt.show()
