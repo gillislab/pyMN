@@ -40,19 +40,20 @@ def compute_nw_linkage(nw, method="average", make_sym=True, **kwargs):
         nw2.fillna(0, inplace=True)
     else:
         nw2 = nw
-    return hierarchy.linkage(
-        (1 - nw2.values)[np.triu_indices(nw2.shape[0], 1)], method=method, **kwargs
-    )
+    return hierarchy.linkage((1 - nw2.values)[np.triu_indices(nw2.shape[0],
+                                                              1)],
+                             method=method,
+                             **kwargs)
 
 
 def plotMetaNeighborUS(
-    data,
-    threshold=None,
-    mn_key="MetaNeighborUS",
-    show=True,
-    figsize=(6, 6),
-    fontsize=6,
-    **kwargs,
+        data,
+        threshold=None,
+        mn_key="MetaNeighborUS",
+        show=True,
+        figsize=(6, 6),
+        fontsize=6,
+        **kwargs,
 ):
     """Plot results from MetaNeighborUS function
 
@@ -90,11 +91,16 @@ def plotMetaNeighborUS(
             **kwargs,
         )
     else:
-        cm = sns.clustermap(
-            df, row_linkage=l, col_linkage=l, figsize=figsize, square=True, **kwargs
-        )
-    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xticklabels(), fontsize=fontsize)
-    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_yticklabels(), fontsize=fontsize)
+        cm = sns.clustermap(df,
+                            row_linkage=l,
+                            col_linkage=l,
+                            figsize=figsize,
+                            square=True,
+                            **kwargs)
+    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xticklabels(),
+                                  fontsize=fontsize)
+    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_yticklabels(),
+                                  fontsize=fontsize)
 
     if show:
         plt.show()
@@ -116,23 +122,21 @@ def order_rows_according_to_cols(M, alpha=1.0):
     Returns:
     np.ndarray -- 1-D array with order for rows
     """
-    M2 = M.values ** alpha
-    row_score = np.nansum(M2.T * np.arange(M2.shape[1])[:, None], axis=0) / np.nansum(
-        M2, axis=1
-    )
+    M2 = M.values**alpha
+    row_score = np.nansum(M2.T * np.arange(M2.shape[1])[:, None],
+                          axis=0) / np.nansum(M2, axis=1)
     return M.index[np.argsort(row_score)]
 
 
-def plotMetaNeighborUS_pretrained(
-    data,
-    threshold=None,
-    mn_key="MetaNeighborUS",
-    show=True,
-    figsize=(6, 6),
-    fontsize=6,
-    alpha_row=10,
-    alpha_col=1,
-    **kwargs):
+def plotMetaNeighborUS_pretrained(data,
+                                  threshold=None,
+                                  mn_key="MetaNeighborUS",
+                                  show=True,
+                                  figsize=(6, 6),
+                                  fontsize=6,
+                                  alpha_row=10,
+                                  alpha_col=1,
+                                  **kwargs):
     """[summary]
 
      Plots rectangular AUROC heatmap, clustering train cell types (columns)
@@ -163,10 +167,10 @@ def plotMetaNeighborUS_pretrained(
         df = data.uns[mn_key].copy()
     else:
         df = data.copy()
-    col_l = hierarchy.linkage(df.fillna(0).values.T ** alpha_col, method="average")
+    col_l = hierarchy.linkage(df.fillna(0).values.T**alpha_col,
+                              method="average")
     row_order = order_rows_according_to_cols(
-        df.fillna(0).iloc[:, hierarchy.leaves_list(col_l)], alpha=alpha_row
-    )
+        df.fillna(0).iloc[:, hierarchy.leaves_list(col_l)], alpha=alpha_row)
     df = df.loc[row_order]
 
     if threshold is None:
@@ -188,8 +192,10 @@ def plotMetaNeighborUS_pretrained(
             **kwargs,
         )
 
-    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xticklabels(), fontsize=fontsize)
-    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_yticklabels(), fontsize=fontsize)
+    cm.ax_heatmap.set_xticklabels(cm.ax_heatmap.get_xticklabels(),
+                                  fontsize=fontsize)
+    cm.ax_heatmap.set_yticklabels(cm.ax_heatmap.get_yticklabels(),
+                                  fontsize=fontsize)
 
     if show:
         plt.show()
@@ -198,13 +204,13 @@ def plotMetaNeighborUS_pretrained(
 
 
 def plotMetaNeighbor(
-    data,
-    mn_key="MetaNeighbor",
-    ct_col=None,
-    show=True,
-    color=None,
-    palette="Set2",
-    xtick_rotation=45,
+        data,
+        mn_key="MetaNeighbor",
+        ct_col=None,
+        show=True,
+        color=None,
+        palette="Set2",
+        xtick_rotation=45,
 ):
     """Plot MetaNeighbor results in violin plots
 
@@ -267,7 +273,9 @@ def plotMetaNeighbor(
         color=color,
         palette=color_pal,
     )
-    ax.set_xticklabels(ax.get_xticklabels(), ha="right", rotation=xtick_rotation)
+    ax.set_xticklabels(ax.get_xticklabels(),
+                       ha="right",
+                       rotation=xtick_rotation)
     sns.despine()
 
     if show:
@@ -276,14 +284,13 @@ def plotMetaNeighbor(
         return ax
 
 
-def plotUpset(
-    adata,
-    study_col=None,
-    ct_col=None,
-    mn_key="MetaNeighborUS",
-    metaclusters="MetaNeighborUS_1v1_metaclusters",
-    outlier_label="outliers",
-    show=True):
+def plotUpset(adata,
+              study_col=None,
+              ct_col=None,
+              mn_key="MetaNeighborUS",
+              metaclusters="MetaNeighborUS_1v1_metaclusters",
+              outlier_label="outliers",
+              show=True):
     """Plot UpSet plot for intersections between datasets and metaclusters
 
     Shows how replicability depends on hte input dataset
@@ -310,9 +317,8 @@ def plotUpset(
         assert ct_col in adata.obs_keys(), "Cluster Col not in adata"
 
     if type(metaclusters) is str:
-        assert (
-            metaclusters in adata.uns_keys()
-        ), "Run extractMetaClusters or pass Metacluster Series"
+        assert (metaclusters in adata.uns_keys()
+                ), "Run extractMetaClusters or pass Metacluster Series"
         metaclusters = adata.uns[metaclusters]
     pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
     pheno = pheno.drop_duplicates().set_index("study_ct")
@@ -321,13 +327,16 @@ def plotUpset(
     studies = [get_studies(x) for x in metaclusters.values]
     membership = dict(zip(metaclusters.index, studies))
     df = pd.DataFrame(
-        [{name: True for name in names} for names in membership.values()],
+        [{name: True
+          for name in names} for names in membership.values()],
         index=membership.keys(),
     )
     df = df.fillna(False)
     df = df[df.index != outlier_label]
     df = df.groupby(df.columns.tolist(), as_index=False).size()
-    if type(df) is not pd.Series: #For pandas versions <1.0.0 size returns the correct series
+    if type(
+            df
+    ) is not pd.Series:  #For pandas versions <1.0.0 size returns the correct series
         cols = df.columns[:-1].copy()
         for col in cols:
             df.set_index(df[col], append=True, inplace=True)
@@ -341,11 +350,11 @@ def plotUpset(
 
 
 def makeClusterGraph(
-    adata,
-    best_hits="MetaNeighborUS_1v1",
-    low_threshold=0,
-    high_threshold=1,
-    save_graph="MetaNeighborUS_metacluster_graph",
+        adata,
+        best_hits="MetaNeighborUS_1v1",
+        low_threshold=0,
+        high_threshold=1,
+        save_graph="MetaNeighborUS_metacluster_graph",
 ):
     """Make a grpah of the clusters based on similarity
 
@@ -365,15 +374,13 @@ def makeClusterGraph(
             if False return nx.Graph (default: {'MetaNeighborUS_metacluster_graph'})
     """
     if type(best_hits) is str:
-        assert (
-            best_hits in adata.uns_keys()
-        ), "Run MetaNeighorUS in 1v1 mode to compute Best Hits"
+        assert (best_hits in adata.uns_keys()
+                ), "Run MetaNeighorUS in 1v1 mode to compute Best Hits"
         best_hits = adata.uns[best_hits]
     filtered_hits = best_hits.copy()
     filtered_hits.fillna(0, inplace=True)
-    filtered_hits.values[
-        (best_hits.values > high_threshold) | (best_hits.values < low_threshold)
-    ] = 0
+    filtered_hits.values[(best_hits.values > high_threshold) |
+                         (best_hits.values < low_threshold)] = 0
     np.fill_diagonal(filtered_hits.values, 0)
     G = nx.from_pandas_adjacency(filtered_hits.T, nx.DiGraph)
     if bool(save_graph):
@@ -382,11 +389,10 @@ def makeClusterGraph(
         return G
 
 
-def extendClusterSet(
-    coi,
-    adata=None,
-    G="MetaNeighborUS_metacluster_graph",
-    max_neighbor_distance=2):
+def extendClusterSet(coi,
+                     adata=None,
+                     G="MetaNeighborUS_metacluster_graph",
+                     max_neighbor_distance=2):
     """Extend cluster set to nearest neighbor on cluster graph
 
     Note that the graph is directed, i.e. the neighbors are retrieved
@@ -420,18 +426,18 @@ def extendClusterSet(
 
 
 def plotClusterGraph(
-    adata,
-    G="MetaNeighborUS_metacluster_graph",
-    best_hits="MetaNeighborUS_1v1",
-    mn_key="MetaNeighborUS",
-    node_list=None,
-    study_col=None,
-    ct_col=None,
-    node_scale=1,
-    figsize=(6, 6),
-    font_size=10,
-    legend_loc="best",
-    show=True,
+        adata,
+        G="MetaNeighborUS_metacluster_graph",
+        best_hits="MetaNeighborUS_1v1",
+        mn_key="MetaNeighborUS",
+        node_list=None,
+        study_col=None,
+        ct_col=None,
+        node_scale=1,
+        figsize=(6, 6),
+        font_size=10,
+        legend_loc="best",
+        show=True,
 ):
     """Plot cluster graph generated with makeClusterGraph.
 
@@ -487,16 +493,11 @@ def plotClusterGraph(
     ct_labels = dict(zip(list(G.nodes()), pheno2.loc[list(G.nodes()), ct_col]))
     study_labels = pheno2.loc[list(G.nodes()), study_col].values
 
-    node_sizes = (
-        pd.cut(
-            pheno.reset_index()["study_ct"].value_counts(),
-            [0, 10, 100, np.inf],
-            labels=[150, 300, 450],
-        )[list(G.nodes())]
-        .astype(int)
-        .values
-        * node_scale
-    )
+    node_sizes = (pd.cut(
+        pheno.reset_index()["study_ct"].value_counts(),
+        [0, 10, 100, np.inf],
+        labels=[150, 300, 450],
+    )[list(G.nodes())].astype(int).values * node_scale)
 
     if f"{study_col}_colors_dict" not in adata.uns_keys():
         studies = np.unique(adata.obs[study_col])
@@ -508,8 +509,9 @@ def plotClusterGraph(
 
     fig, ax = plt.subplots(figsize=figsize)
     pos = nx.nx_agraph.graphviz_layout(
-        G, prog="neato", args=f"-Goverlap=true -size={figsize[0]},{figsize[0]}"
-    )
+        G,
+        prog="neato",
+        args=f"-Goverlap=true -size={figsize[0]},{figsize[0]}")
     nx.draw_networkx_nodes(
         G,
         pos=pos,
@@ -523,9 +525,8 @@ def plotClusterGraph(
 
     # Prepare legend
     class MarkerHandler(HandlerBase):
-        def create_artists(
-            self, legend, tup, xdescent, ydescent, width, height, fontsize, trans
-        ):
+        def create_artists(self, legend, tup, xdescent, ydescent, width,
+                           height, fontsize, trans):
             return [
                 plt.Line2D(
                     [width / 2],
@@ -551,18 +552,17 @@ def plotClusterGraph(
         return ax
 
 
-def plotDotPlot(
-    adata,
-    gene_set,
-    normalize_library_size=True,
-    mn_key="MetaNeighbor",
-    study_col=None,
-    ct_col=None,
-    alpha_row=10,
-    average_expressing_only=True,
-    figsize=(10, 6),
-    fontsize=10,
-    show=True):
+def plotDotPlot(adata,
+                gene_set,
+                normalize_library_size=True,
+                mn_key="MetaNeighbor",
+                study_col=None,
+                ct_col=None,
+                alpha_row=10,
+                average_expressing_only=True,
+                figsize=(10, 6),
+                fontsize=10,
+                show=True):
     """Plot dot plot showing expression of a gene set across cell types.
 
     The size of each dot reflects the number of cell that express a gene,
@@ -609,75 +609,101 @@ def plotDotPlot(
         expr = adata[:, gs].to_df().T
 
     label_matrix = design_matrix(
-        join_labels(adata.obs[study_col].values, adata.obs[ct_col].values)
-    )
+        join_labels(adata.obs[study_col].values, adata.obs[ct_col].values))
     label_matrix /= label_matrix.sum()
     centroids = pd.DataFrame(
-        expr.fillna(0).values.astype(float) @ label_matrix.values.astype(float),
+        expr.fillna(0).values.astype(float)
+        @ label_matrix.values.astype(float),
         index=expr.index,
         columns=label_matrix.columns,
     )
     average_nnz = pd.DataFrame(
-        ((expr.values > 0).astype(float) @ label_matrix.values),
+        ((expr.fillna(0).values > 0).astype(float) @ label_matrix.values),
         index=expr.index,
         columns=label_matrix.columns,
     )
     if average_expressing_only:
         centroids /= average_nnz
-    centroids = centroids.T.astype(float).apply(stats.zscore).T
+    centroids = centroids.T.astype(float).apply(stats.zscore,
+                                                nan_policy='omit').T
     centroids.index.name = "Gene"
     average_nnz.index.name = "Gene"
 
     centroids.reset_index(inplace=True)
     average_nnz.reset_index(inplace=True)
+
     pheno, _, _ = create_cell_labels(adata, study_col, ct_col)
     pheno.set_index("study_ct", inplace=True)
     pheno2 = pheno.drop_duplicates()
 
-    centroids = pd.melt(
-        centroids, id_vars="Gene", value_name="average_expression", var_name="study_ct"
-    )
-    centroids.loc[:, "Cell Type"] = pheno2.loc[
-        centroids["study_ct"].values, ct_col
-    ].values
-    centroids = centroids.groupby(["Gene", "Cell Type"]).mean().reset_index()
+    centroids = pd.melt(centroids,
+                        id_vars="Gene",
+                        value_name="Average Expression",
+                        var_name="study_ct")
+    centroids.loc[:, "Cell Type"] = pheno2.loc[centroids["study_ct"].
+                                               values, ct_col].values
+    centroids = centroids.groupby(["Gene", "Cell Type"]).agg({
+        'Average Expression':
+        lambda x: x.mean(skipna=False)
+    }).reset_index()
 
     average_nnz = pd.melt(
         average_nnz,
         id_vars="Gene",
-        value_name="percent_expressing",
+        value_name="Percent Expressing",
         var_name="study_ct",
     )
-    average_nnz.loc[:, "Cell Type"] = pheno2.loc[
-        average_nnz["study_ct"].values, ct_col
-    ].values
-    average_nnz = average_nnz.groupby(["Gene", "Cell Type"]).mean().reset_index()
+    average_nnz.loc[:, "Cell Type"] = pheno2.loc[average_nnz["study_ct"].
+                                                 values, ct_col].values
 
-    result = centroids.merge(average_nnz, how="inner", on=["Gene", "Cell Type"])
+    average_nnz = average_nnz.groupby(["Gene",
+                                       "Cell Type"]).mean().reset_index()
+    result = centroids.merge(average_nnz,
+                             how="inner",
+                             on=["Gene", "Cell Type"])
 
     row_order = order_rows_according_to_cols(
-        pd.pivot(
-            result, index="Gene", columns="Cell Type", values="average_expression"
-        ),
+        pd.pivot(result,
+                 index="Gene",
+                 columns="Cell Type",
+                 values="Average Expression"),
         alpha=10,
-    )
+    )[::-1]
     result.loc[:, "Gene"] = pd.Categorical(result.Gene, categories=row_order)
 
     result.sort_values("Gene", inplace=True)
 
     result.loc[:, "Gene"] = result["Gene"].astype(str)
+
+    gene_cat = pd.Categorical(result.Gene, categories=result.Gene.unique())
+    result.loc[:, 'Gene_pos'] = gene_cat.codes + 1
+    cell_cat = result['Cell Type'].astype('category').cat
+    result.loc[:, 'Cell_pos'] = cell_cat.codes + 1
+
     fig, ax = plt.subplots(figsize=figsize)
-    sns.scatterplot(
-        data=result.fillna(result["average_expression"].min()),
-        x="Cell Type",
-        y="Gene",
-        hue="average_expression",
-        size="percent_expressing",
-        palette="RdYlBu_r",
-        ax=ax,
-    )
-    plt.yticks(fontsize=fontsize)
+    sns.scatterplot(data=result.fillna(0),
+                    x='Cell_pos',
+                    y='Gene_pos',
+                    hue='Average Expression',
+                    size='Percent Expressing',
+                    palette='RdYlBu_r',
+                    ax=ax)
     ax.legend(loc=(1, 0), frameon=False)
+    resna = result[result.isna().any(axis=1)]
+
+    sns.scatterplot(data=resna.fillna(0),
+                    x='Cell_pos',
+                    y='Gene_pos',
+                    size='Percent Expressing',
+                    ax=ax,
+                    color='.7',
+                    legend=None)
+
+    ax.set(xlabel='Cell Type', ylabel='Gene')
+    ax.set_xticks(result['Cell_pos'].unique())
+    ax.set_xticklabels(result['Cell Type'].unique())
+    ax.set_yticks(result['Gene_pos'].unique())
+    ax.set_yticklabels(result['Gene'].unique())
     if show:
         plt.show()
     else:
