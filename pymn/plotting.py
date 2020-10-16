@@ -18,6 +18,7 @@ import scanpy as sc
 
 from .utils import *
 
+import warnings
 
 def compute_nw_linkage(nw, method="average", make_sym=True, **kwargs):
     """Compute the Network Linkage for a similarity matrix
@@ -508,10 +509,15 @@ def plotClusterGraph(
         color_pal = adata.uns[f"{study_col}_colors_dict"]
 
     fig, ax = plt.subplots(figsize=figsize)
-    pos = nx.nx_agraph.graphviz_layout(
-        G,
-        prog="neato",
-        args=f"-Goverlap=true -size={figsize[0]},{figsize[0]}")
+    try:
+        pos = nx.nx_agraph.graphviz_layout(
+            G,
+            prog="neato",
+            args=f"-Goverlap=true -size={figsize[0]},{figsize[0]}")
+    except:
+        warnings.warn("pygraphviz is not installed, defaulting to networkx spring layout, for better layout install pygraphviz")
+        pos = nx.spring_layout(G)
+
     nx.draw_networkx_nodes(
         G,
         pos=pos,

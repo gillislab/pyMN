@@ -7,4 +7,3 @@ scanpy
 bottleneck
 networkx
 upsetplot
-pygraphviz
