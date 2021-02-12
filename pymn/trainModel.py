@@ -33,7 +33,9 @@ def trainModel(
     assert var_genes.shape[0] > 2, "Must have at least 2 genes"
 
     adata = adata[:, var_genes]
-
+    cell_sums = np.sum(adata.X.toarray() if sparse.issparse(adata.X) else adata.X, axis=1)
+    adata = adata[cell_sums > 0]
+    
     dat = normalize_cells(adata.X).T
     labels = join_labels(adata.obs[study_col].values, adata.obs[ct_col].values)
     label_matrix = design_matrix(labels)

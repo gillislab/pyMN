@@ -97,16 +97,28 @@ def MetaNeighborUS(adata,
                 adata.obs[ct_col].dtype.name != "category"
             ), "Cell Type Col is a category type, cast to either string or int"
 
+<<<<<<< HEAD
             cell_nv = metaNeighborUS_fast(adata[:, var_genes].X,
                                           adata.obs[study_col],
                                           adata.obs[ct_col],
                                           node_degree_normalization,
                                           one_vs_best, compute_p)
+=======
+            cell_nv = metaNeighborUS_fast(
+                adata[:, var_genes].X,
+                adata.obs[study_col],
+                adata.obs[ct_col],
+                node_degree_normalization,
+                one_vs_best,
+                return_p
+            )
+>>>>>>> d8fb559199199f23cb1367a4cdeca37d13ef187a
         else:
             cell_nv = metaNeighborUS_default(adata[:, var_genes], study_col,
                                              ct_col, node_degree_normalization,
                                              compute_p)
     else:
+<<<<<<< HEAD
         cell_nv = MetaNeighborUS_from_trained(trained_model,
                                               adata[:, var_genes].X,
                                               adata.obs[study_col].values,
@@ -117,6 +129,17 @@ def MetaNeighborUS(adata,
         cell_p = cell_nv[1]
         cell_nv = cell_nv[0]
         cell_p = cell_p.astype(float)
+=======
+        cell_nv = MetaNeighborUS_from_trained(
+            trained_model,
+            adata[:, var_genes].X,
+            adata.obs[study_col].values,
+            adata.obs[ct_col].values,
+            node_degree_normalization,
+            one_vs_best,
+            return_p
+        )
+>>>>>>> d8fb559199199f23cb1367a4cdeca37d13ef187a
 
     cell_nv = cell_nv.astype(float)
     if symmetric_output and not one_vs_best:
@@ -222,8 +245,12 @@ def compute_aurocs_default(sum_in, study_ct_uniq, pheno, study_col, ct_col,
     return cell_nv
 
 
+<<<<<<< HEAD
 def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best,
                         compute_p):
+=======
+def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best, return_p):
+>>>>>>> d8fb559199199f23cb1367a4cdeca37d13ef187a
     """Fast MetaNeighbor Approximation Helper function
 
 
@@ -284,6 +311,7 @@ def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best,
     n_cells_per_cluster = np.sum(labels_matrix.values, axis=0)
     LSC = pd.DataFrame({"study": S.values, "cluster": C.values}, index=labels)
 
+<<<<<<< HEAD
     result = predict_and_score(X_norm, LSC, cluster_centroids,
                                n_cells_per_cluster, labels_order,
                                node_degree_normalization, one_vs_best,
@@ -296,10 +324,23 @@ def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best,
         p_vals = p_vals[p_vals.index]
         return aurocs, p_vals
 
+=======
+    result = predict_and_score(
+        X_norm,
+        LSC,
+        cluster_centroids,
+        n_cells_per_cluster,
+        labels_order,
+        node_degree_normalization,
+        one_vs_best,
+        return_p
+    )
+>>>>>>> d8fb559199199f23cb1367a4cdeca37d13ef187a
     result = result[result.index]
     return result
 
 
+<<<<<<< HEAD
 def predict_and_score(X_test,
                       LSC,
                       cluster_centroids,
@@ -309,6 +350,18 @@ def predict_and_score(X_test,
                       one_vs_best,
                       compute_p,
                       pretrained=False):
+=======
+def predict_and_score(
+    X_test,
+    LSC,
+    cluster_centroids,
+    n_cells_per_cluster,
+    labels_order,
+    node_degree_normalization,
+    one_vs_best,
+    return_p,
+    pretrained=False):
+>>>>>>> d8fb559199199f23cb1367a4cdeca37d13ef187a
     """[summary]
 
     [description]
@@ -363,12 +416,16 @@ def predict_and_score(X_test,
                 votes[:, is_train] = votes[:, is_train] / norm
         votes = pd.DataFrame(votes, index=votes_idx, columns=votes_cols)
 
+<<<<<<< HEAD
         aurocs = compute_aurocs(votes,
                                 positives=design_matrix(votes.index),
                                 compute_p=compute_p)
         if compute_p:
             result_p.append(aurocs[1])
             aurocs = aurocs[0]
+=======
+        aurocs = compute_aurocs(votes, positives=design_matrix(votes.index), return_p)
+>>>>>>> d8fb559199199f23cb1367a4cdeca37d13ef187a
         if one_vs_best:
             aurocs = compute_1v1_aurocs(votes, aurocs)
         result.append(aurocs)
@@ -377,9 +434,20 @@ def predict_and_score(X_test,
     return pd.concat(result)
 
 
+<<<<<<< HEAD
 def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
                                 node_degree_normalization, one_vs_best,
                                 compute_p):
+=======
+def MetaNeighborUS_from_trained(
+    trained_model,
+    test_data,
+    study_col,
+    ct_col,
+    node_degree_normalization,
+    one_vs_best,
+    return_p):
+>>>>>>> d8fb559199199f23cb1367a4cdeca37d13ef187a
     """MetaNeighbor from Pretrained model
 
     Runs MetaNeighbor using a pretrained model in the fast approximate version
@@ -412,7 +480,11 @@ def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
         cluster_centroids.columns,
         node_degree_normalization,
         one_vs_best,
+<<<<<<< HEAD
         compute_p,
+=======
+        return_p,
+>>>>>>> d8fb559199199f23cb1367a4cdeca37d13ef187a
         pretrained=True,
     )
     return result

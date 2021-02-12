@@ -21,9 +21,10 @@ def compute_var_genes(adata, return_vect=True):
 
     if sparse.issparse(adata.X):
         median = csc_median_axis_0(sparse.csc_matrix(adata.X))
+        variance = np.var(adata.X.A, axis=0)
     else:
         median = bottleneck.median(adata.X, axis=0)
-    variance = np.var(adata.X.A, axis=0)
+        variance = np.var(adata.X,axis=0)
     bins = np.quantile(median, q=np.linspace(0, 1, 11), interpolation="midpoint")
     digits = np.digitize(median, bins, right=True)
 
