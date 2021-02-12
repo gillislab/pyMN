@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import sparse
+from scipy import sparse, stats
 import pandas as pd
 import bottleneck
 import gc
@@ -150,7 +150,7 @@ def normalize_cells(X, ranked=True):
     return res
 
 
-def compute_aurocs(votes, positives=None):
+def compute_aurocs(votes, positives=None, compute_p=False):
     """Compute AUORCs based on neighbors voting and candidates identities
 
 
@@ -177,6 +177,13 @@ def compute_aurocs(votes, positives=None):
     result = sum_pos_ranks / n_pos[:, None]
     result -= (n_pos[:, None] + 1) / 2
     result /= n_neg[:, None]
+
+    if compute_p:
+        U = result * n_pos * n_neg
+        Z = (np.abs(U - (n_pos * n_neg / 2))) / np.sqrt(n_pos * n_neg * *(n_pos * n_neg + 1) / 12)
+        p = stats.norm.sf(Z)
+        print(p)
+        return pd.DataFrame(result, index=res_idx, columns=res_col), pd.Dataframe(p, index=res_idx, columns=res_col)
     return pd.DataFrame(result, index=res_idx, columns=res_col)
 
 

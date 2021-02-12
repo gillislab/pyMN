@@ -101,6 +101,7 @@ def MetaNeighborUS(
                 adata.obs[ct_col],
                 node_degree_normalization,
                 one_vs_best,
+                return_p
             )
         else:
             cell_nv = metaNeighborUS_default(
@@ -116,6 +117,7 @@ def MetaNeighborUS(
             adata.obs[ct_col].values,
             node_degree_normalization,
             one_vs_best,
+            return_p
         )
 
     cell_nv = cell_nv.astype(float)
@@ -210,7 +212,7 @@ def compute_aurocs_default(
     return cell_nv
 
 
-def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best):
+def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best, return_p):
     """Fast MetaNeighbor Approximation Helper function
 
 
@@ -278,6 +280,7 @@ def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best):
         labels_order,
         node_degree_normalization,
         one_vs_best,
+        return_p
     )
     result = result[result.index]
     return result
@@ -291,6 +294,7 @@ def predict_and_score(
     labels_order,
     node_degree_normalization,
     one_vs_best,
+    return_p,
     pretrained=False):
     """[summary]
 
@@ -343,7 +347,8 @@ def predict_and_score(
                 norm = node_degree[:, train_study_id == train_study]
                 votes[:, is_train] = votes[:, is_train] / norm
         votes = pd.DataFrame(votes, index=votes_idx, columns=votes_cols)
-        aurocs = compute_aurocs(votes, positives=design_matrix(votes.index))
+
+        aurocs = compute_aurocs(votes, positives=design_matrix(votes.index), return_p)
         if one_vs_best:
             aurocs = compute_1v1_aurocs(votes, aurocs)
         result.append(aurocs)
@@ -356,7 +361,8 @@ def MetaNeighborUS_from_trained(
     study_col,
     ct_col,
     node_degree_normalization,
-    one_vs_best):
+    one_vs_best,
+    return_p):
     """MetaNeighbor from Pretrained model
 
     Runs MetaNeighbor using a pretrained model in the fast approximate version
@@ -389,6 +395,7 @@ def MetaNeighborUS_from_trained(
         cluster_centroids.columns,
         node_degree_normalization,
         one_vs_best,
+        return_p,
         pretrained=True,
     )
     return result
