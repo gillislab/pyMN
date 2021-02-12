@@ -174,7 +174,6 @@ def compute_aurocs(votes, positives=None, compute_p=False):
     n_neg = positives.shape[0] - n_pos
 
     sum_pos_ranks = positives.T @ bottleneck.rankdata(votes.values, axis=0)
-<<<<<<< HEAD
     roc = sum_pos_ranks / n_pos[:, None]
     roc -= (n_pos[:, None] + 1) / 2
     roc /= n_neg[:, None]
@@ -191,19 +190,6 @@ def compute_aurocs(votes, positives=None, compute_p=False):
         p = pd.DataFrame(p, index=res_idx, columns=res_col)
         return pd.DataFrame(roc, index=res_idx, columns=res_col), p
     return pd.DataFrame(roc, index=res_idx, columns=res_col)
-=======
-    result = sum_pos_ranks / n_pos[:, None]
-    result -= (n_pos[:, None] + 1) / 2
-    result /= n_neg[:, None]
-
-    if compute_p:
-        U = result * n_pos * n_neg
-        Z = (np.abs(U - (n_pos * n_neg / 2))) / np.sqrt(n_pos * n_neg * *(n_pos * n_neg + 1) / 12)
-        p = stats.norm.sf(Z)
-        print(p)
-        return pd.DataFrame(result, index=res_idx, columns=res_col), pd.Dataframe(p, index=res_idx, columns=res_col)
-    return pd.DataFrame(result, index=res_idx, columns=res_col)
->>>>>>> d8fb559199199f23cb1367a4cdeca37d13ef187a
 
 
 def compute_1v1_aurocs(votes, aurocs):
