@@ -19,7 +19,7 @@ def MetaNeighborUS(adata,
                    one_vs_best=False,
                    trained_model=None,
                    save_uns=True,
-                   compute_p=True,
+                   compute_p=False,
                    mn_key="MetaNeighborUS"):
     """Runs Unsupervised version of MetaNeighbor
 
