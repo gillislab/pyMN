@@ -5,21 +5,22 @@ import warnings
 
 import gc
 
-from .utils import *
+#from .utils import *
+from utils import *
 
 
-def MetaNeighborUS(
-    adata,
-    study_col,
-    ct_col,
-    var_genes="highly_variable",
-    symmetric_output=True,
-    node_degree_normalization=True,
-    fast_version=False,
-    one_vs_best=False,
-    trained_model=None,
-    save_uns=True,
-    mn_key="MetaNeighborUS"):
+def MetaNeighborUS(adata,
+                   study_col,
+                   ct_col,
+                   var_genes="highly_variable",
+                   symmetric_output=True,
+                   node_degree_normalization=True,
+                   fast_version=False,
+                   one_vs_best=False,
+                   trained_model=None,
+                   save_uns=True,
+                   compute_p=True,
+                   mn_key="MetaNeighborUS"):
     """Runs Unsupervised version of MetaNeighbor
 
     When it is difficult to know how cell type labels compare across datasets this
@@ -62,10 +63,11 @@ def MetaNeighborUS(
     assert ct_col in adata.obs_keys(), "Cluster Col not in adata"
 
     if trained_model is not None:
-        var_genes = adata.var_names[np.in1d(adata.var_names, trained_model.index)]
-        trained_model = pd.concat(
-            [pd.DataFrame(trained_model.iloc[0]).T, trained_model.loc[var_genes]]
-        )
+        var_genes = adata.var_names[np.in1d(adata.var_names,
+                                            trained_model.index)]
+        trained_model = pd.concat([
+            pd.DataFrame(trained_model.iloc[0]).T, trained_model.loc[var_genes]
+        ])
     elif type(var_genes) is str:
         assert (
             var_genes in adata.var_keys()
@@ -76,16 +78,16 @@ def MetaNeighborUS(
 
     assert var_genes.shape[0] > 2, "Must have at least 2 genes"
     if var_genes.shape[0] < 5:
-        warnings.warn("You should have at least 5 Variable Genes", category=UserWarning)
+        warnings.warn("You should have at least 5 Variable Genes",
+                      category=UserWarning)
     if one_vs_best:
-        assert (
-            fast_version or trained_model is not None
-        ), "If you want to run in one_vs_best mode you must also \
+        assert (fast_version or trained_model is not None
+                ), "If you want to run in one_vs_best mode you must also \
          run in fast version mode or use a pretrained model"
+
     if trained_model is None:
-        assert (
-            np.unique(adata.obs[study_col].values).shape[0] > 1
-        ), "Need more than 1 study"
+        assert (np.unique(adata.obs[study_col].values).shape[0] >
+                1), "Need more than 1 study"
         if fast_version:
             # Fast verion doesn't work with Categorical datatype
             assert (
@@ -95,30 +97,30 @@ def MetaNeighborUS(
                 adata.obs[ct_col].dtype.name != "category"
             ), "Cell Type Col is a category type, cast to either string or int"
 
-            cell_nv = metaNeighborUS_fast(
-                adata[:, var_genes].X,
-                adata.obs[study_col],
-                adata.obs[ct_col],
-                node_degree_normalization,
-                one_vs_best,
-            )
+            cell_nv = metaNeighborUS_fast(adata[:, var_genes].X,
+                                          adata.obs[study_col],
+                                          adata.obs[ct_col],
+                                          node_degree_normalization,
+                                          one_vs_best, compute_p)
         else:
-            cell_nv = metaNeighborUS_default(
-                adata[:, var_genes], study_col, ct_col, node_degree_normalization
-            )
-        if symmetric_output:
-            cell_nv = (cell_nv + cell_nv.T) / 2
+            cell_nv = metaNeighborUS_default(adata[:, var_genes], study_col,
+                                             ct_col, node_degree_normalization,
+                                             compute_p)
     else:
-        cell_nv = MetaNeighborUS_from_trained(
-            trained_model,
-            adata[:, var_genes].X,
-            adata.obs[study_col].values,
-            adata.obs[ct_col].values,
-            node_degree_normalization,
-            one_vs_best,
-        )
+        cell_nv = MetaNeighborUS_from_trained(trained_model,
+                                              adata[:, var_genes].X,
+                                              adata.obs[study_col].values,
+                                              adata.obs[ct_col].values,
+                                              node_degree_normalization,
+                                              one_vs_best, compute_p)
+    if compute_p:
+        cell_p = cell_nv[1]
+        cell_nv = cell_nv[0]
+        cell_p = cell_p.astype(float)
 
     cell_nv = cell_nv.astype(float)
+    if symmetric_output and not one_vs_best:
+        cell_nv = (cell_nv + cell_nv.T) / 2
     if save_uns:
         if one_vs_best:
             adata.uns[f"{mn_key}_1v1"] = cell_nv
@@ -132,11 +134,14 @@ def MetaNeighborUS(
             "one_vs_best": one_vs_best,
             "symmetric_output": symmetric_output,
         }
+        if compute_p:
+            adata.uns[f'{mn_key}_pval'] = cell_p
     else:
         return cell_nv
 
 
-def metaNeighborUS_default(adata, study_col, ct_col, node_degree_normalization):
+def metaNeighborUS_default(adata, study_col, ct_col, node_degree_normalization,
+                           compute_p):
     """Runs MetaNeighbor using Default Method
 
 
@@ -150,7 +155,8 @@ def metaNeighborUS_default(adata, study_col, ct_col, node_degree_normalization):
     Returns:
         pd.DataFrame -- ROCs for cell type x cell type labels
     """
-    pheno, cell_labels, study_ct_uniq = create_cell_labels(adata, study_col, ct_col)
+    pheno, cell_labels, study_ct_uniq = create_cell_labels(
+        adata, study_col, ct_col)
 
     rank_data = create_nw_spearman(adata.X.T)
 
@@ -160,16 +166,13 @@ def metaNeighborUS_default(adata, study_col, ct_col, node_degree_normalization):
         sum_all = np.sum(rank_data, axis=0)
         sum_in /= sum_all[:, None]
 
-    cell_nv = compute_aurocs_default(sum_in, study_ct_uniq, pheno, study_col, ct_col)
+    cell_nv = compute_aurocs_default(sum_in, study_ct_uniq, pheno, study_col,
+                                     ct_col, compute_p)
     return cell_nv
 
 
-def compute_aurocs_default(
-    sum_in,
-    study_ct_uniq,
-    pheno,
-    study_col,
-    ct_col):
+def compute_aurocs_default(sum_in, study_ct_uniq, pheno, study_col, ct_col,
+                           compute_p):
     """Helper function to compute AUROCs from votes matrix of cells
 
 
@@ -184,11 +187,13 @@ def compute_aurocs_default(
         pd.DataFrame -- ROCs for cell type x cell type labels
     """
     cell_nv = pd.DataFrame(index=study_ct_uniq)
+    if compute_p:
+        cell_p = pd.DataFrame(index=study_ct_uniq)
     for ct in study_ct_uniq:
         predicts_tmp = sum_in.copy()
-        study, cellT = (
-            pheno[pheno.study_ct == ct].drop_duplicates()[[study_col, ct_col]].values[0]
-        )  # Don't want to split string in case of charcter issues
+        study, cellT = (pheno[pheno.study_ct == ct].drop_duplicates()[[
+            study_col, ct_col
+        ]].values[0])  # Don't want to split string in case of charcter issues
         slicer = pheno[study_col] == study
         pheno2 = pheno[slicer]
         predicts_tmp = predicts_tmp[slicer]
@@ -202,15 +207,23 @@ def compute_aurocs_default(
         n_p = bottleneck.nansum(filter_mat, axis=0)
         nn = filter_mat.shape[0] - n_p
         p = bottleneck.nansum(predicts_tmp, axis=0)
-
-        cell_nv[ct] = (p / n_p - (n_p + 1) / 2) / nn
-
+        roc = (p / n_p - (n_p + 1) / 2) / nn
+        cell_nv[ct] = roc
+        if compute_p:
+            U = roc * n_p * nn
+            Z = (np.abs(U - (n_p * nn / 2))) / np.sqrt(n_p * nn *
+                                                       (n_p + nn + 1) / 12)
+            P = stats.norm.sf(Z)
+            cell_p[ct] = P
         del predicts_tmp, filter_mat
         gc.collect()
+    if compute_p:
+        return cell_nv, cell_p
     return cell_nv
 
 
-def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best):
+def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best,
+                        compute_p):
     """Fast MetaNeighbor Approximation Helper function
 
 
@@ -265,33 +278,37 @@ def metaNeighborUS_fast(X, S, C, node_degree_normalization, one_vs_best):
     labels_matrix = design_matrix(labels)
 
     cluster_centroids = X_norm @ labels_matrix.values
-    cluster_centroids = pd.DataFrame(cluster_centroids, columns=labels_matrix.columns)
+    cluster_centroids = pd.DataFrame(cluster_centroids,
+                                     columns=labels_matrix.columns)
     labels_order = labels_matrix.columns
     n_cells_per_cluster = np.sum(labels_matrix.values, axis=0)
     LSC = pd.DataFrame({"study": S.values, "cluster": C.values}, index=labels)
 
-    result = predict_and_score(
-        X_norm,
-        LSC,
-        cluster_centroids,
-        n_cells_per_cluster,
-        labels_order,
-        node_degree_normalization,
-        one_vs_best,
-    )
+    result = predict_and_score(X_norm, LSC, cluster_centroids,
+                               n_cells_per_cluster, labels_order,
+                               node_degree_normalization, one_vs_best,
+                               compute_p)
+    if compute_p:
+        aurocs = result[0]
+        aurocs = aurocs[aurocs.index]
+
+        p_vals = result[1]
+        p_vals = p_vals[p_vals.index]
+        return aurocs, p_vals
+
     result = result[result.index]
     return result
 
 
-def predict_and_score(
-    X_test,
-    LSC,
-    cluster_centroids,
-    n_cells_per_cluster,
-    labels_order,
-    node_degree_normalization,
-    one_vs_best,
-    pretrained=False):
+def predict_and_score(X_test,
+                      LSC,
+                      cluster_centroids,
+                      n_cells_per_cluster,
+                      labels_order,
+                      node_degree_normalization,
+                      one_vs_best,
+                      compute_p,
+                      pretrained=False):
     """[summary]
 
     [description]
@@ -314,17 +331,19 @@ def predict_and_score(
     if node_degree_normalization:
         if pretrained:
             get_study_id = np.vectorize(lambda x: x.split("|")[0])
-            centroid_study_label = get_study_id(cluster_centroids.columns.values)
+            centroid_study_label = get_study_id(
+                cluster_centroids.columns.values)
         else:
-            centroid_study_label = (
-                LSC.drop_duplicates().loc[labels_order, "study"].values
-            )
+            centroid_study_label = (LSC.drop_duplicates().loc[labels_order,
+                                                              "study"].values)
         study_matrix = design_matrix(centroid_study_label)
         train_study_id = study_matrix.columns
         study_centroids = cluster_centroids.values @ study_matrix.values
         n_cells_per_study = n_cells_per_cluster @ study_matrix.values
 
     result = []
+    if compute_p:
+        result_p = []
     S = LSC["study"].values
     for test_study in np.unique(S):
         is_test = S == test_study
@@ -343,20 +362,24 @@ def predict_and_score(
                 norm = node_degree[:, train_study_id == train_study]
                 votes[:, is_train] = votes[:, is_train] / norm
         votes = pd.DataFrame(votes, index=votes_idx, columns=votes_cols)
-        aurocs = compute_aurocs(votes, positives=design_matrix(votes.index))
+
+        aurocs = compute_aurocs(votes,
+                                positives=design_matrix(votes.index),
+                                compute_p=compute_p)
+        if compute_p:
+            result_p.append(aurocs[1])
+            aurocs = aurocs[0]
         if one_vs_best:
             aurocs = compute_1v1_aurocs(votes, aurocs)
         result.append(aurocs)
+    if compute_p:
+        return pd.concat(result), pd.concat(result_p)
     return pd.concat(result)
 
 
-def MetaNeighborUS_from_trained(
-    trained_model,
-    test_data,
-    study_col,
-    ct_col,
-    node_degree_normalization,
-    one_vs_best):
+def MetaNeighborUS_from_trained(trained_model, test_data, study_col, ct_col,
+                                node_degree_normalization, one_vs_best,
+                                compute_p):
     """MetaNeighbor from Pretrained model
 
     Runs MetaNeighbor using a pretrained model in the fast approximate version
@@ -389,6 +412,7 @@ def MetaNeighborUS_from_trained(
         cluster_centroids.columns,
         node_degree_normalization,
         one_vs_best,
+        compute_p,
         pretrained=True,
     )
     return result

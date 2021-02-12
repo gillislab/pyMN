@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import sparse
+from scipy import sparse, stats
 import pandas as pd
 import bottleneck
 import gc
@@ -25,9 +25,8 @@ def create_cell_labels(adata, study_col, ct_col):
     """
     pheno = adata.obs[[study_col, ct_col]].copy()
 
-    pheno.loc[:, "study_ct"] = join_labels(
-        pheno[study_col].values, pheno[ct_col].values
-    )
+    pheno.loc[:, "study_ct"] = join_labels(pheno[study_col].values,
+                                           pheno[ct_col].values)
     study_ct_uniq = np.unique(pheno.study_ct)
     cell_labels = pd.get_dummies(pheno.study_ct)
     return pheno, cell_labels, study_ct_uniq
@@ -145,22 +144,23 @@ def normalize_cells(X, ranked=True):
     avg = np.mean(res, axis=1)
     res -= avg[:, None]
 
-    norm = np.sqrt(bottleneck.nansum(res ** 2, axis=1))[:, None]
+    norm = np.sqrt(bottleneck.nansum(res**2, axis=1))[:, None]
     res /= norm
     return res
 
 
-def compute_aurocs(votes, positives=None):
+def compute_aurocs(votes, positives=None, compute_p=False):
     """Compute AUORCs based on neighbors voting and candidates identities
 
 
     Arguments:
         votes {pd.DataFrame} -- DataFrame with votes for cell types
+        
 
     Keyword Arguments:
         positives {Vector} -- Vector of assignments for positive values. If left empty,
         cells are assumed to be the row names of the votes matrix (default: {None})
-
+        compute_p {pd.DataFrame} -- Boolean for whether or not to compute the p value for the AUROC (default : {False})
     Returns:
         pd.DataFrame -- DataFrame of testing cell types x training cell types
     """
@@ -174,10 +174,22 @@ def compute_aurocs(votes, positives=None):
     n_neg = positives.shape[0] - n_pos
 
     sum_pos_ranks = positives.T @ bottleneck.rankdata(votes.values, axis=0)
-    result = sum_pos_ranks / n_pos[:, None]
-    result -= (n_pos[:, None] + 1) / 2
-    result /= n_neg[:, None]
-    return pd.DataFrame(result, index=res_idx, columns=res_col)
+    roc = sum_pos_ranks / n_pos[:, None]
+    roc -= (n_pos[:, None] + 1) / 2
+    roc /= n_neg[:, None]
+
+    if compute_p:
+        n_pos = n_pos[:, None]
+        n_neg = n_neg[:, None]
+
+        U = roc * n_pos * n_neg
+        Z = (np.abs(U -
+                    (n_pos * n_neg / 2))) / np.sqrt(n_pos * n_neg *
+                                                    (n_pos + n_neg + 1) / 12)
+        p = stats.norm.sf(Z)
+        p = pd.DataFrame(p, index=res_idx, columns=res_col)
+        return pd.DataFrame(roc, index=res_idx, columns=res_col), p
+    return pd.DataFrame(roc, index=res_idx, columns=res_col)
 
 
 def compute_1v1_aurocs(votes, aurocs):
@@ -222,8 +234,7 @@ def find_top_candidates(votes, aurocs):
         votes_contender = votes[votes.index == contender]
 
         pos = design_matrix(
-            np.repeat([1, 0], [votes_best.shape[0], votes_contender.shape[0]])
-        )
+            np.repeat([1, 0], [votes_best.shape[0], votes_contender.shape[0]]))
         vt = pd.DataFrame(pd.concat([votes_best, votes_contender]))
         auroc = compute_aurocs(vt, positives=pos).values[1, 0]
         if auroc < 0.5:
