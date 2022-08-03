@@ -41,7 +41,7 @@ You can either install this by cloning the repository, moving into it and then r
   `pip install .` 
 
 If you don't want to clone the repository you can just run:
-	`pip install git+https://github.com/gillislab/pyMN#egg=pymn`
+	`pip install git+https://github.com/gillislab/pyMN#egg=pymetaneighbor`
 
 
 ## Usage
