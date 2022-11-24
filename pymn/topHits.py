@@ -56,7 +56,8 @@ def topHits(
     # Set all AUROCS for self dataset and self to 0
     study_design = design_matrix(pheno2.loc[cnv.index, study_col].values)
     study_mask = study_design @ study_design.T
-    cnv.mask(study_mask.astype(bool), other=0, inplace=True)
+    #convert to boolean and numpy as it seems the duplicated col + row names result in the mask failing
+    cnv.mask(study_mask.astype(bool).to_numpy(), other=0, inplace=True)
     np.fill_diagonal(cnv.values, 0)
 
     top_cols = pd.concat([cnv.max(axis=0), cnv.idxmax()], axis=1).reset_index()

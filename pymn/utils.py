@@ -97,10 +97,9 @@ def join_labels(x, y, replace_bar=False):
     if replace_bar:
         warnings.warn("Replacing any | with a . in study column values")
         a = x.replace("|", ".")
-        return f"{a}|{y}"
+        return a + "|" + y
     else:
-        return f"{x}|{y}"
-
+        return x + "|" + y
 
 def design_matrix(vec):
     """Create design matrix from a vector
