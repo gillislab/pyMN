@@ -54,14 +54,17 @@ def topHits(
     reciprocal = max_per_celltype_and_study.drop(columns = "auroc")
     #flip the max scores to find reciprocal ones
     reverse_hits = reciprocal.rename(columns = {"ref_cell_type":"target_cell_type", 
-                                                "target_cell_type":"reciprocal_cell_type"})
+                                                "target_cell_type":"reciprocal_cell_type",
+                                                "ref_study":"target_study",
+                                                "target_study":"ref_study"})
     
-    reciprocal = pd.merge(reciprocal, reverse_hits, on = "target_cell_type")
+    reciprocal = pd.merge(reciprocal, reverse_hits, on = ["target_cell_type", "ref_study", "target_study"])
     
     reciprocal["is_reciprocal"] = (reciprocal["ref_cell_type"] == reciprocal["reciprocal_cell_type"])
     
     #slim it down for joining
     reciprocal = reciprocal[["ref_cell_type", "target_cell_type", "is_reciprocal"]]
+    reciprocal = reciprocal.groupby(["ref_cell_type", "target_cell_type"], as_index=False)["is_reciprocal"].max()
     
     max_per_celltype_and_study = pd.merge(max_per_celltype_and_study, reciprocal, how = "inner")
     
